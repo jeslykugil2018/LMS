@@ -3,150 +3,149 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, BookOpen, Calculator, Users, ShieldCheck, Globe } from 'lucide-react';
 
 const Landing = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    return (
-        <div className="landing-container">
-            {/* Navigation */}
-            <nav className="landing-nav">
-                <div className="nav-logo">
-                    <div className="logo-icon">L</div>
-                    <span>LMS Portal</span>
-                </div>
-                <button onClick={() => navigate('/login')} className="btn btn-primary">
-                    Admin Login
-                </button>
-            </nav>
+  return (
+    <div className="landing-container">
+      {/* Navigation */}
+      <nav className="landing-nav">
+        <div className="nav-logo">
+          <div className="logo-icon">L</div>
+          <span>LMS Portal</span>
+        </div>
+        <button onClick={() => navigate('/login')} className="btn btn-primary">
+          Admin Login
+        </button>
+      </nav>
 
-            {/* Hero Section */}
-            <header className="hero">
-                <div className="hero-content">
-                    <div className="hero-badge">Next-Gen Learning Management</div>
-                    <h1>Empowering Education for <span className="text-gradient">Northex & UpBold</span></h1>
-                    <p>
-                        A unified solution for administrative excellence, financial transparency, and student success.
-                        Streamlining campus operations with modern technology.
-                    </p>
-                    <div className="hero-actions">
-                        <button onClick={() => navigate('/login')} className="btn btn-primary btn-lg">
-                            Get Started <ArrowRight size={20} />
-                        </button>
-                        <button className="btn btn-outline btn-lg">View Demo</button>
-                    </div>
-                </div>
-                <div className="hero-visual">
-                    <div className="visual-wrapper">
-                        <img src="/landing-hero.png" alt="LMS Hero" className="hero-img" />
-                        <div className="floating-card c1">
-                            <Users size={24} className="icon-blue" />
-                            <div>
-                                <h4>5000+</h4>
-                                <p>Active Students</p>
-                            </div>
-                        </div>
-                        <div className="floating-card c2">
-                            <ShieldCheck size={24} className="icon-green" />
-                            <div>
-                                <h4>Secure</h4>
-                                <p>Data Protection</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
+      {/* Hero Section */}
+      <header className="hero">
+        <div className="hero-content">
+          <div className="hero-badge">Next-Gen Learning Management</div>
+          <h1>Empowering Education for <span className="text-gradient">Northex & UpBold</span></h1>
+          <p>
+            A unified solution for administrative excellence, financial transparency, and student success.
+            Streamlining campus operations with modern technology.
+          </p>
+          <div className="hero-actions">
+            <button onClick={() => navigate('/login')} className="btn btn-primary btn-lg">
+              Get Started <ArrowRight size={20} />
+            </button>
+            <button onClick={() => navigate('/login')} className="btn btn-outline btn-lg">View Demo</button>
+          </div>
+        </div>
+        <div className="hero-visual">
+          <div className="visual-wrapper">
+            <img src="/landing-hero.png" alt="LMS Hero" className="hero-img" />
+            <div className="floating-card c1">
+              <Users size={24} className="icon-blue" />
+              <div>
+                <h4>5000+</h4>
+                <p>Active Students</p>
+              </div>
+            </div>
+            <div className="floating-card c2">
+              <ShieldCheck size={24} className="icon-green" />
+              <div>
+                <h4>Secure</h4>
+                <p>Data Protection</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
 
-            {/* Stats Section */}
-            <section className="stats">
-                <div className="stat-item">
-                    <h3>24/7</h3>
-                    <p>Support</p>
-                </div>
-                <div className="stat-divider"></div>
-                <div className="stat-item">
-                    <h3>99.9%</h3>
-                    <p>Uptime</p>
-                </div>
-                <div className="stat-divider"></div>
-                <div className="stat-item">
-                    <h3>2</h3>
-                    <p>Major Campuses</p>
-                </div>
-                <div className="stat-divider"></div>
-                <div className="stat-item">
-                    <h3>100%</h3>
-                    <p>Digitalized</p>
-                </div>
-            </section>
+      {/* Stats Section */}
+      <section className="stats">
+        <div className="stat-item">
+          <h3>24/7</h3>
+          <p>Support</p>
+        </div>
+        <div className="stat-divider"></div>
+        <div className="stat-item">
+          <h3>99.9%</h3>
+          <p>Uptime</p>
+        </div>
+        <div className="stat-divider"></div>
+        <div className="stat-item">
+          <h3>2</h3>
+          <p>Major Campuses</p>
+        </div>
+        <div className="stat-divider"></div>
+        <div className="stat-item">
+          <h3>100%</h3>
+          <p>Digitalized</p>
+        </div>
+      </section>
 
-            {/* Modules Section */}
-            <section className="modules">
-                <div className="section-header">
-                    <h2>Core Modules</h2>
-                    <p>Everything you need to manage your institution efficiently</p>
-                </div>
-                <div className="module-grid">
-                    <div className="module-card">
-                        <div className="m-icon icon-blue"><Users /></div>
-                        <h3>Student Management</h3>
-                        <p>Comprehensive student profiles, attendance tracking, and performance analytics.</p>
-                    </div>
-                    <div className="module-card">
-                        <div className="m-icon icon-green"><Calculator /></div>
-                        <h3>Fee & Finance</h3>
-                        <p>Automated invoicing, fee collection, and detailed financial reporting.</p>
-                    </div>
-                    <div className="module-card">
-                        <div className="m-icon icon-orange"><Globe /></div>
-                        <h3>Multi-Campus</h3>
-                        <p>Switch seamlessly between Northex and UpBold campus data in one portal.</p>
-                    </div>
-                    <div className="module-card">
-                        <div className="m-icon icon-purple"><BookOpen /></div>
-                        <h3>Academic Tools</h3>
-                        <p>Course management, gradebooks, and curriculum planning made simple.</p>
-                    </div>
-                </div>
-            </section>
+      {/* Modules Section */}
+      <section className="modules">
+        <div className="section-header">
+          <h2>Core Modules</h2>
+          <p>Everything you need to manage your institution efficiently</p>
+        </div>
+        <div className="module-grid">
+          <div className="module-card">
+            <div className="m-icon icon-blue"><Users /></div>
+            <h3>Student Management</h3>
+            <p>Comprehensive student profiles, attendance tracking, and performance analytics.</p>
+          </div>
+          <div className="module-card">
+            <div className="m-icon icon-green"><Calculator /></div>
+            <h3>Fee & Finance</h3>
+            <p>Automated invoicing, fee collection, and detailed financial reporting.</p>
+          </div>
+          <div className="module-card">
+            <div className="m-icon icon-orange"><Globe /></div>
+            <h3>Multi-Campus</h3>
+            <p>Switch seamlessly between Northex and UpBold campus data in one portal.</p>
+          </div>
+          <div className="module-card">
+            <div className="m-icon icon-purple"><BookOpen /></div>
+            <h3>Academic Tools</h3>
+            <p>Course management, gradebooks, and curriculum planning made simple.</p>
+          </div>
+        </div>
+      </section>
 
-            {/* CTA Section */}
-            <section className="cta-banner">
-                <h2>Ready to transform your administration?</h2>
-                <p>Join the future of campus management today.</p>
-                <button onClick={() => navigate('/login')} className="btn btn-white btn-lg">
-                    Launch Portal <ArrowRight size={20} />
-                </button>
-            </section>
+      {/* CTA Section */}
+      <section className="cta-banner">
+        <h2>Ready to transform your administration?</h2>
+        <p>Join the future of campus management today.</p>
+        <button onClick={() => navigate('/login')} className="btn btn-white btn-lg">
+          Launch Portal <ArrowRight size={20} />
+        </button>
+      </section>
 
-            {/* Footer */}
-            <footer className="landing-footer">
-                <div className="footer-top">
-                    <div className="footer-brand">
-                        <div className="nav-logo">
-                            <div className="logo-icon">L</div>
-                            <span>LMS Portal</span>
-                        </div>
-                        <p>Simplifying education management for the modern era.</p>
-                    </div>
-                    <div className="footer-links">
-                        <div>
-                            <h4>Campuses</h4>
-                            <a href="#">Northex Campus</a>
-                            <a href="#">UpBold Campus</a>
-                        </div>
-                        <div>
-                            <h4>Solutions</h4>
-                            <a href="#">Admin Panel</a>
-                            <a href="#">Finance Tools</a>
-                            <a href="#">Support Hub</a>
-                        </div>
-                    </div>
-                </div>
-                <div className="footer-bottom">
-                    <p>&copy; {new Date().getFullYear()} Northex UpBold LMS. All rights reserved.</p>
-                </div>
-            </footer>
+      {/* Footer */}
+      <footer className="landing-footer">
+        <div className="footer-top">
+          <div className="footer-brand">
+            <div className="nav-logo">
+              <div className="logo-icon">L</div>
+              <span>LMS Portal</span>
+            </div>
+            <p>Simplifying education management for the modern era.</p>
+          </div>
+          <div className="footer-links">
+            <div>
+              <h4>Campuses</h4>
+              <a href="#">Northex Campus</a>
+              <a href="#">UpBold Campus</a>
+            </div>
+            <div>
+              <h4>Solutions</h4>
+              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>Admin Panel</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/support'); }}>Support Hub</a>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <p>&copy; {new Date().getFullYear()} Northex UpBold LMS. All rights reserved.</p>
+        </div>
+      </footer>
 
-            <style>{`
+      <style>{`
         .landing-container {
           background-color: #ffffff;
           color: #1e293b;
@@ -392,8 +391,8 @@ const Landing = () => {
           .footer-links { flex-direction: column; gap: 2rem; }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default Landing;
