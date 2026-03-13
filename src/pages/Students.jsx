@@ -187,37 +187,63 @@ const Students = () => {
     <div className="students-page">
       <div className="header-actions">
         <div>
-          <h1 className="page-title">Student Management</h1>
-          <p className="page-subtitle">Track enrollments and payment statuses</p>
+          <h1 className="page-title">Students Registry</h1>
+          <p className="page-subtitle">Manage campus enrollments and tuition tracking</p>
         </div>
-        <div className="action-btns">
-          <button className="btn btn-outline" onClick={exportToCSV}>
-            <Download size={18} /> Export
-          </button>
-          <button className="btn btn-primary" onClick={() => handleOpenModal()}>
-            <Plus size={20} /> Add Student
-          </button>
-        </div>
+        <button className="btn btn-primary" onClick={() => handleOpenModal()}>
+          <Plus size={20} /> Enroll Student
+        </button>
       </div>
 
 
-      <div className="filters-bar card">
+      <div className="stats-overview">
+        <div className="stat-card">
+          <div className="stat-icon-s blue"><Users size={20} /></div>
+          <div className="stat-info">
+            <span className="stat-label">Total Enrollments</span>
+            <h2 className="stat-value">{filteredStudents.length}</h2>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon-s emerald"><Check size={20} /></div>
+          <div className="stat-info">
+            <span className="stat-label">Fully Paid</span>
+            <h2 className="stat-value">{filteredStudents.filter(s => s.outstanding <= 0).length}</h2>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon-s violet"><DollarSign size={20} /></div>
+          <div className="stat-info">
+            <span className="stat-label">Pending Revenue</span>
+            <h2 className="stat-value" style={{ color: '#ef4444' }}>
+              LKR {filteredStudents.reduce((sum, s) => sum + s.outstanding, 0).toLocaleString()}
+            </h2>
+          </div>
+        </div>
+      </div>
+
+      <div className="utility-bar card">
         <div className="search-box">
-          <Search size={20} className="search-icon" />
+          <Search size={18} className="search-icon" />
           <input
             type="text"
-            placeholder="Quick lookup by name or email..."
+            placeholder="Search students..."
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
           />
         </div>
 
-        <div className="filter-group">
-          <Filter size={18} />
-          <select value={districtFilter} onChange={(e) => { setDistrictFilter(e.target.value); setCurrentPage(1); }}>
-            <option value="All">All Districts</option>
-            {districts.filter(d => d !== 'All').map(d => <option key={d} value={d}>{d}</option>)}
-          </select>
+        <div className="utility-actions">
+          <div className="filter-group">
+            <Filter size={16} />
+            <select value={districtFilter} onChange={(e) => { setDistrictFilter(e.target.value); setCurrentPage(1); }}>
+              <option value="All">All Districts</option>
+              {districts.filter(d => d !== 'All').map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <button className="btn btn-outline btn-sm" onClick={exportToCSV}>
+            <Download size={16} /> Export CSV
+          </button>
         </div>
       </div>
 
@@ -453,41 +479,84 @@ const Students = () => {
         .page-subtitle { color: #64748b; font-size: 0.95rem; font-weight: 500; font-family: 'Plus Jakarta Sans', sans-serif; }
         .action-btns { display: flex; gap: 1.5rem; }
 
-        .filters-bar {
-          display: flex;
+        .filters-bar { display: none; } /* Replaced by utility-bar */
+
+        .stats-overview {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
           gap: 1.5rem;
           margin-bottom: 2.5rem;
-          padding: 1.5rem;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 20px;
-          align-items: center;
         }
 
-        .search-box { flex: 1; position: relative; }
-        .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        .stat-card {
+          background: white;
+          padding: 1.5rem;
+          border-radius: 20px;
+          border: 1px solid #e2e8f0;
+          display: flex;
+          align-items: center;
+          gap: 1.25rem;
+          transition: transform 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
+
+        .stat-icon-s {
+          width: 48px; height: 48px; border-radius: 12px;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+        }
+        .stat-icon-s.blue { background: #eff6ff; color: #3b82f6; }
+        .stat-icon-s.emerald { background: #ecfdf5; color: #10b981; }
+        .stat-icon-s.violet { background: #f5f3ff; color: #8b5cf6; }
+
+        .stat-info { display: flex; flex-direction: column; }
+        .stat-label { font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+        .stat-value { font-size: 1.5rem; font-weight: 900; color: #1e293b; }
+
+        .utility-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem 1.5rem;
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          margin-bottom: 2rem;
+          gap: 2rem;
+        }
+
+        .utility-actions { display: flex; align-items: center; gap: 1.5rem; }
+
+        .search-box { flex: 1; position: relative; max-width: 400px; }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
         .search-box input {
           width: 100%;
-          padding: 1rem 1rem 1rem 3rem;
-          border: 1px solid #cbd5e1;
-          border-radius: 12px;
+          padding: 0.75rem 1rem 0.75rem 2.75rem;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
           outline: none;
           transition: all 0.2s;
-          font-size: 1rem;
+          font-size: 0.9rem;
+          font-weight: 500;
         }
-        .search-box input:focus { border-color: #006dff; box-shadow: 0 0 0 4px rgba(0, 109, 255, 0.1); }
+        .search-box input:focus { border-color: #006aff; box-shadow: 0 0 0 3px rgba(0, 106, 255, 0.05); }
 
-        .filter-group { display: flex; align-items: center; gap: 1rem; }
+        .filter-group { display: flex; align-items: center; gap: 0.75rem; color: #64748b; }
         .filter-group select {
-          padding: 1rem;
-          border: 1px solid #cbd5e1;
-          border-radius: 12px;
-          background: white;
+          padding: 0.6rem 2.5rem 0.6rem 1rem;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          background: #f8fafc;
           cursor: pointer;
-          font-size: 0.9375rem;
-          font-weight: 600;
+          font-size: 0.85rem;
+          font-weight: 700;
           color: #475569;
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 0.75rem center;
         }
+
 
         .students-list { 
             border-radius: 24px; 
