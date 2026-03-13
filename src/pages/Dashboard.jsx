@@ -149,7 +149,7 @@ const Dashboard = () => {
                 <div className="pill-icon emerald"><Sparkles size={20} /></div>
                 <div className="pill-content">
                   <span className="pill-label">Collections (Today)</span>
-                  <span className="pill-value">Rs. {campusStats.todayPayments.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  <span className="pill-value">LKR {campusStats.todayPayments.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
               </div>
             </div>

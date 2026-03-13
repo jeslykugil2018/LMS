@@ -122,7 +122,7 @@ const Finance = () => {
                     <div className="stat-content">
                         <span className="stat-label">Total Collected</span>
                         <h2 className="stat-value text-success">
-                            Rs. {payments.reduce((sum, p) => sum + Number(p.amount), 0).toFixed(2)}
+                            LKR {payments.reduce((sum, p) => sum + Number(p.amount), 0).toFixed(2)}
                         </h2>
                     </div>
                     <DollarSign size={32} className="stat-icon-bg" />
@@ -170,7 +170,7 @@ const Finance = () => {
                                         <CreditCard size={12} /> {p.method}
                                     </span>
                                 </td>
-                                <td><strong className="text-success">Rs. {Number(p.amount).toFixed(2)}</strong></td>
+                                <td><strong className="text-success">LKR {Number(p.amount).toFixed(2)}</strong></td>
                                 <td><span className="status-badge active">Cleared</span></td>
                                 <td>
                                     <button
@@ -204,7 +204,7 @@ const Finance = () => {
                             </div>
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>Amount (Rs.)</label>
+                                    <label>Amount (LKR)</label>
                                     <input
                                         type="number"
                                         step="0.01"

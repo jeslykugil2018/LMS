@@ -233,9 +233,9 @@ const Students = () => {
                   <th>Contact Details</th>
                   <th>District</th>
                   <th>Age</th>
-                  <th className="text-right">Total (Rs.)</th>
-                  <th className="text-right">Paid (Rs.)</th>
-                  <th className="text-right">Outstanding (Rs.)</th>
+                  <th className="text-right">Total (LKR)</th>
+                  <th className="text-right">Paid (LKR)</th>
+                  <th className="text-right">Outstanding (LKR)</th>
                   <th className="actions-cell">Actions</th>
                 </tr>
               </thead>
@@ -259,9 +259,9 @@ const Students = () => {
                     </td>
                     <td>{student.district}</td>
                     <td>{student.age}</td>
-                    <td className="text-right font-mono">${Number(student.total_payment).toLocaleString()}</td>
-                    <td className="text-right font-mono text-success">${Number(student.paid).toLocaleString()}</td>
-                    <td className="text-right font-mono text-error">${Number(student.outstanding).toLocaleString()}</td>
+                    <td className="text-right font-mono">LKR {Number(student.total_payment).toLocaleString()}</td>
+                    <td className="text-right font-mono text-success">LKR {Number(student.paid).toLocaleString()}</td>
+                    <td className="text-right font-mono text-error">LKR {Number(student.outstanding).toLocaleString()}</td>
                     <td className="actions-cell">
                       <div className="action-row">
                         <button className="icon-btn" onClick={() => handleOpenModal(student)} title="Edit"><Edit2 size={16} /></button>
@@ -363,7 +363,7 @@ const Students = () => {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Total Tuition (Rs.)</label>
+                  <label>Total Tuition (LKR)</label>
                   <input
                     type="number"
                     value={formData.total_payment}
@@ -407,10 +407,10 @@ const Students = () => {
               <div className="profile-section">
                 <h3><DollarSign size={16} /> Payment Summary</h3>
                 <div className="payment-stack">
-                  <div className="pay-row"><span>Total Tuition:</span> <strong>Rs. {selectedStudent.total_payment?.toLocaleString()}</strong></div>
-                  <div className="pay-row text-success"><span>Total Paid:</span> <strong>Rs. {selectedStudent.paid?.toLocaleString()}</strong></div>
+                  <div className="pay-row"><span>Total Tuition:</span> <strong>LKR {selectedStudent.total_payment?.toLocaleString()}</strong></div>
+                  <div className="pay-row text-success"><span>Total Paid:</span> <strong>LKR {selectedStudent.paid?.toLocaleString()}</strong></div>
                   <div className="pay-row divider"></div>
-                  <div className="pay-row text-error"><span>Outstanding:</span> <strong>Rs. {selectedStudent.outstanding?.toLocaleString()}</strong></div>
+                  <div className="pay-row text-error"><span>Outstanding:</span> <strong>LKR {selectedStudent.outstanding?.toLocaleString()}</strong></div>
                 </div>
               </div>
             </div>

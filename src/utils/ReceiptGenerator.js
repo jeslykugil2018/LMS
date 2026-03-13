@@ -90,7 +90,7 @@ export const generateReceipt = (payment) => {
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.text(`Method: ${payment.method || 'Standard Deposit'}`, 115, startY + 20);
-        doc.text(`Currency: Indian Rupee (INR)`, 115, startY + 26);
+        doc.text(`Currency: Sri Lankan Rupee (LKR)`, 115, startY + 26);
         doc.text(`Status: Verified & Cleared`, 115, startY + 32);
 
         // Success Indicator
@@ -107,7 +107,7 @@ export const generateReceipt = (payment) => {
                 '01',
                 payment.note || 'Full Semester Tuition / Admission Fees',
                 '1 Unit',
-                `Rs. ${Number(payment.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                `LKR ${Number(payment.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
             ]
         ];
 
@@ -150,10 +150,10 @@ export const generateReceipt = (payment) => {
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.text('Subtotal:', 150, finalY);
-        doc.text(`Rs. ${Number(payment.amount || 0).toLocaleString()}`, 190, finalY, { align: 'right' });
+        doc.text(`LKR ${Number(payment.amount || 0).toLocaleString()}`, 190, finalY, { align: 'right' });
 
         doc.text('Institutional Discount:', 150, finalY + 7);
-        doc.text('Rs. 0.00', 190, finalY + 7, { align: 'right' });
+        doc.text('LKR 0.00', 190, finalY + 7, { align: 'right' });
 
         doc.setFillColor(...primaryBlue);
         doc.rect(130, finalY + 12, 60, 15, 'F');
@@ -163,7 +163,7 @@ export const generateReceipt = (payment) => {
         doc.setFontSize(10);
         doc.text('NET TOTAL:', 135, finalY + 22);
         doc.setFontSize(11);
-        doc.text(`Rs. ${Number(payment.amount || 0).toLocaleString()}`, 185, finalY + 22, { align: 'right' });
+        doc.text(`LKR ${Number(payment.amount || 0).toLocaleString()}`, 185, finalY + 22, { align: 'right' });
 
         // --- 5. Footer Modernization ---
         const footerStartY = 245;
