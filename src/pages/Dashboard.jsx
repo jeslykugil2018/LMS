@@ -66,9 +66,7 @@ const Dashboard = () => {
 
   const navHub = [
     { label: 'Students', desc: 'Manage enrollment and records', icon: Users, path: '/students', color: '#006dff' },
-    { label: 'Finance', desc: 'Track payments and invoices', icon: CreditCard, path: '/finance', color: '#006dff' },
-    { label: 'Campuses', desc: 'Manage institutional locations', icon: Landmark, path: '/campuses', color: '#006dff' },
-    { label: 'Admins', desc: 'Manage administrative access', icon: Globe, path: '/admins', color: '#006dff' }
+    { label: 'Finance', desc: 'Track payments and invoices', icon: CreditCard, path: '/finance', color: '#006dff' }
   ]
 
   if (loading) return (

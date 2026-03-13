@@ -9,7 +9,6 @@ import Students from './pages/Students'
 import Finance from './pages/Finance'
 import Campuses from './pages/Campuses'
 import CampusSelection from './pages/CampusSelection'
-import CampusDashboard from './pages/CampusDashboard'
 import Support from './pages/Support'
 import Admins from './pages/Admins'
 
