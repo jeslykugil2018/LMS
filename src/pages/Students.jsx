@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Search, Filter, Mail, Phone, MapPin, Edit2, Trash2, ChevronRight, Download, Users, Landmark, CreditCard, DollarSign, ArrowLeft } from 'lucide-react'
+import { Plus, Search, Filter, Mail, Phone, MapPin, Edit2, Trash2, ChevronRight, Download, Users, Landmark, CreditCard, DollarSign, ArrowLeft, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
