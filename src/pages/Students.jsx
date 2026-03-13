@@ -299,6 +299,13 @@ const Students = () => {
               </div>
               <div className="filter-group">
                 <Filter size={16} />
+                <select value={batchFilter} onChange={(e) => { setBatchFilter(e.target.value); setCurrentPage(1); }}>
+                  <option value="All">All Batches</option>
+                  {batchesList.filter(b => b !== 'All').map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </div>
+              <div className="filter-group">
+                <Filter size={16} />
                 <select value={districtFilter} onChange={(e) => { setDistrictFilter(e.target.value); setCurrentPage(1); }}>
                   <option value="All">All Districts</option>
                   {districts.filter(d => d !== 'All').map(d => <option key={d} value={d}>{d}</option>)}
@@ -399,6 +406,7 @@ const Students = () => {
                 className="batch-card card"
                 onClick={() => {
                   setCourseFilter(batch.course);
+                  setBatchFilter(batch.batch);
                   setViewMode('registry');
                 }}
               >
