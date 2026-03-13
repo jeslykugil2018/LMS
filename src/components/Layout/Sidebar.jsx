@@ -8,7 +8,7 @@ const Sidebar = () => {
   const location = useLocation()
 
   const navItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     ...(adminRecord?.role === 'Super Admin' ? [{ label: 'Campus Settings', icon: Landmark, path: '/campuses' }] : []),
     { label: 'Help & Support', icon: HelpCircle, path: '/support' },
   ]
