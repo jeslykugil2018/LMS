@@ -3,6 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Filter, Mail, Phone, MapPin, Edit2, Trash2, ChevronRight, Download, Users, Landmark, CreditCard, DollarSign, ArrowLeft, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { useRef } from 'react'
+
+const PREDEFINED_COURSES = [
+  'Video Editing',
+  'Graphic Design',
+  'Full Stack Development',
+  'Digital Marketing',
+  'UI/UX Design',
+  'Business Management'
+]
 
 const ITEMS_PER_PAGE = 10
 
@@ -13,6 +23,7 @@ const Students = () => {
   const [payments, setPayments] = useState([])
   const [campuses, setCampuses] = useState([])
   const [loading, setLoading] = useState(true)
+  const fileInputRef = useRef(null)
 
   // filtering & pagination
   const [searchTerm, setSearchTerm] = useState('')
@@ -208,6 +219,55 @@ const Students = () => {
     }
   }
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      const text = event.target.result
+      const rows = text.split('\n').filter(row => row.trim() !== '')
+      if (rows.length < 2) {
+        alert('CSV file must have at least a header and one data row.')
+        return
+      }
+
+      const headers = rows[0].split(',').map(h => h.trim().toLowerCase())
+      const studentData = rows.slice(1).map(row => {
+        const values = row.split(',').map(v => v.trim())
+        const obj = {}
+        headers.forEach((h, i) => {
+          // Map CSV headers to database columns
+          let key = h
+          if (h === 'name' || h === 'full name') key = 'full_name'
+          if (h === 'phone number') key = 'phone'
+          if (h === 'tuition' || h === 'total') key = 'total_payment'
+          obj[key] = values[i]
+        })
+
+        // Add default student properties
+        return {
+          ...obj,
+          campus_id: adminRecord?.campus_id || obj.campus_id,
+          age: obj.age ? parseInt(obj.age) : null,
+          total_payment: obj.total_payment ? parseFloat(obj.total_payment) : 0
+        }
+      })
+
+      setLoading(true)
+      const { error } = await supabase.from('students').insert(studentData)
+      if (error) {
+        alert('Error importing students: ' + error.message)
+      } else {
+        alert(`Successfully imported ${studentData.length} students.`)
+        fetchData()
+      }
+      setLoading(false)
+    }
+    reader.readAsText(file)
+    e.target.value = null // Reset input
+  }
+
   const exportToCSV = () => {
     const headers = ['Full Name', 'Email', 'Phone', 'District', 'Age', 'Total', 'Paid', 'Outstanding']
     const rows = filteredStudents.map(s => [
@@ -225,10 +285,45 @@ const Students = () => {
     <div className="students-page">
       <div className="header-actions">
         <div>
-          <h1 className="page-title">Students Registry</h1>
-          <p className="page-subtitle">Manage campus enrollments and tuition tracking</p>
+          <h1 className="page-title">
+            {viewMode === 'registry' ? (
+              <>
+                <span style={{ cursor: 'pointer', opacity: 0.5 }} onClick={() => { setViewMode('explorer'); setCourseFilter('All'); setBatchFilter('All'); }}>Explorer</span>
+                <span style={{ margin: '0 0.5rem', opacity: 0.3 }}>/</span>
+                {courseFilter !== 'All' ? courseFilter : 'All Courses'}
+                {batchFilter !== 'All' && (
+                  <>
+                    <span style={{ margin: '0 0.5rem', opacity: 0.3 }}>/</span>
+                    {batchFilter}
+                  </>
+                )}
+              </>
+            ) : (
+              'Batch Explorer'
+            )}
+          </h1>
+          <p className="page-subtitle">
+            {viewMode === 'registry'
+              ? `Viewing students for ${courseFilter !== 'All' ? courseFilter : 'all courses'}${batchFilter !== 'All' ? `, ${batchFilter}` : ''}`
+              : 'Manage and group students by their academic programs'}
+          </p>
         </div>
         <div className="view-toggle-container">
+          {viewMode === 'registry' && (
+            <button className="btn btn-outline" onClick={() => { setViewMode('explorer'); setCourseFilter('All'); setBatchFilter('All'); }}>
+              <ArrowLeft size={18} /> Back to Explorer
+            </button>
+          )}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept=".csv"
+            style={{ display: 'none' }}
+          />
+          <button className="btn btn-outline" onClick={() => fileInputRef.current.click()}>
+            <Download size={20} /> Import CSV
+          </button>
           <button className="btn btn-primary" onClick={() => handleOpenModal()}>
             <Plus size={20} /> Enroll Student
           </button>
@@ -296,6 +391,12 @@ const Students = () => {
                   <option value="All">All Districts</option>
                   {districts.filter(d => d !== 'All').map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
+              </div>
+              <div className="filter-group">
+                <Filter size={16} />
+                <button className="btn btn-outline btn-sm" onClick={() => fileInputRef.current.click()}>
+                  <Plus size={16} /> Import Students
+                </button>
               </div>
               <button className="btn btn-outline btn-sm" onClick={exportToCSV}>
                 <Download size={16} /> Export CSV
@@ -485,12 +586,14 @@ const Students = () => {
               <div className="form-row">
                 <div className="form-group">
                   <label>Course Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Video Editing"
+                  <select
                     value={formData.course}
                     onChange={e => setFormData({ ...formData, course: e.target.value })}
-                  />
+                    required
+                  >
+                    <option value="">Select Course</option>
+                    {PREDEFINED_COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
                 </div>
                 <div className="form-group">
                   <label>Batch No.</label>
