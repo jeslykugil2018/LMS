@@ -144,7 +144,7 @@ const Campuses = () => {
             <div className="page-footer">
                 <button
                     className="btn btn-outline"
-                    onClick={() => navigate(selectedCampusId && selectedCampusId !== 'all' ? `/campus/${selectedCampusId}` : '/')}
+                    onClick={() => navigate('/dashboard')}
                 >
                     <ArrowLeft size={18} /> Back to Dashboard
                 </button>
