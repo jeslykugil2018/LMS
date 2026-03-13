@@ -18,6 +18,7 @@ const Students = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [districtFilter, setDistrictFilter] = useState('All')
   const [courseFilter, setCourseFilter] = useState('All')
+  const [batchFilter, setBatchFilter] = useState('All')
   const [viewMode, setViewMode] = useState('registry') // 'registry' or 'explorer'
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -114,9 +115,10 @@ const Students = () => {
         s.email?.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesDistrict = districtFilter === 'All' || s.district === districtFilter
       const matchesCourse = courseFilter === 'All' || s.course === courseFilter
-      return matchesSearch && matchesDistrict && matchesCourse
+      const matchesBatch = batchFilter === 'All' || s.batch === batchFilter
+      return matchesSearch && matchesDistrict && matchesCourse && matchesBatch
     })
-  }, [studentsWithPayments, searchTerm, districtFilter, courseFilter])
+  }, [studentsWithPayments, searchTerm, districtFilter, courseFilter, batchFilter])
 
   // Pagination logic
   const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE)
@@ -127,6 +129,7 @@ const Students = () => {
 
   const districts = ['All', ...new Set(students.map(s => s.district).filter(Boolean))]
   const courses = ['All', ...new Set(students.map(s => s.course).filter(Boolean))]
+  const batchesList = ['All', 'Batch 1', 'Batch 2', 'Batch 3', 'Batch 4', 'Batch 5']
 
   const handleOpenModal = (student = null) => {
     if (student) {
@@ -497,12 +500,18 @@ const Students = () => {
                 </div>
                 <div className="form-group">
                   <label>Batch No.</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Batch 1"
+                  <select
                     value={formData.batch}
                     onChange={e => setFormData({ ...formData, batch: e.target.value })}
-                  />
+                    required
+                  >
+                    <option value="">Select Batch</option>
+                    <option value="Batch 1">Batch 1</option>
+                    <option value="Batch 2">Batch 2</option>
+                    <option value="Batch 3">Batch 3</option>
+                    <option value="Batch 4">Batch 4</option>
+                    <option value="Batch 5">Batch 5</option>
+                  </select>
                 </div>
               </div>
               <div className="form-row">
