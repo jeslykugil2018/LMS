@@ -18,6 +18,7 @@ const Students = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [districtFilter, setDistrictFilter] = useState('All')
   const [courseFilter, setCourseFilter] = useState('All')
+  const [viewMode, setViewMode] = useState('registry') // 'registry' or 'explorer'
   const [currentPage, setCurrentPage] = useState(1)
 
   // Modal State
@@ -81,6 +82,31 @@ const Students = () => {
       }
     })
   }, [students, payments])
+
+  // Group by Course and Batch for Explorer
+  const batchStats = useMemo(() => {
+    const groups = {}
+    studentsWithPayments.forEach(s => {
+      if (!s.course) return
+      const key = `${s.course}-${s.batch || 'Unassigned'}`
+      if (!groups[key]) {
+        groups[key] = {
+          course: s.course,
+          batch: s.batch || 'Unassigned',
+          count: 0,
+          total: 0,
+          paid: 0,
+          outstanding: 0,
+          campus: s.campuses?.name
+        }
+      }
+      groups[key].count++
+      groups[key].total += Number(s.total_payment || 0)
+      groups[key].paid += Number(s.paid || 0)
+      groups[key].outstanding += Number(s.outstanding || 0)
+    })
+    return Object.values(groups).sort((a, b) => a.course.localeCompare(b.course))
+  }, [studentsWithPayments])
 
   const filteredStudents = useMemo(() => {
     return studentsWithPayments.filter(s => {
@@ -199,9 +225,25 @@ const Students = () => {
           <h1 className="page-title">Students Registry</h1>
           <p className="page-subtitle">Manage campus enrollments and tuition tracking</p>
         </div>
-        <button className="btn btn-primary" onClick={() => handleOpenModal()}>
-          <Plus size={20} /> Enroll Student
-        </button>
+        <div className="view-toggle-container">
+          <div className="view-toggle">
+            <button
+              className={`toggle-btn ${viewMode === 'registry' ? 'active' : ''}`}
+              onClick={() => setViewMode('registry')}
+            >
+              Registry
+            </button>
+            <button
+              className={`toggle-btn ${viewMode === 'explorer' ? 'active' : ''}`}
+              onClick={() => setViewMode('explorer')}
+            >
+              Batch Explorer
+            </button>
+          </div>
+          <button className="btn btn-primary" onClick={() => handleOpenModal()}>
+            <Plus size={20} /> Enroll Student
+          </button>
+        </div>
       </div>
 
 
@@ -231,117 +273,166 @@ const Students = () => {
         </div>
       </div>
 
-      <div className="utility-bar card">
-        <div className="search-box">
-          <Search size={18} className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search students..."
-            value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-          />
-        </div>
+      {viewMode === 'registry' ? (
+        <>
+          <div className="utility-bar card">
+            <div className="search-box">
+              <Search size={18} className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search students..."
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+              />
+            </div>
 
-        <div className="utility-actions">
-          <div className="filter-group">
-            <Filter size={16} />
-            <select value={courseFilter} onChange={(e) => { setCourseFilter(e.target.value); setCurrentPage(1); }}>
-              <option value="All">All Courses</option>
-              {courses.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <div className="utility-actions">
+              <div className="filter-group">
+                <Filter size={16} />
+                <select value={courseFilter} onChange={(e) => { setCourseFilter(e.target.value); setCurrentPage(1); }}>
+                  <option value="All">All Courses</option>
+                  {courses.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="filter-group">
+                <Filter size={16} />
+                <select value={districtFilter} onChange={(e) => { setDistrictFilter(e.target.value); setCurrentPage(1); }}>
+                  <option value="All">All Districts</option>
+                  {districts.filter(d => d !== 'All').map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+              <button className="btn btn-outline btn-sm" onClick={exportToCSV}>
+                <Download size={16} /> Export CSV
+              </button>
+            </div>
           </div>
-          <div className="filter-group">
-            <Filter size={16} />
-            <select value={districtFilter} onChange={(e) => { setDistrictFilter(e.target.value); setCurrentPage(1); }}>
-              <option value="All">All Districts</option>
-              {districts.filter(d => d !== 'All').map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </div>
-          <button className="btn btn-outline btn-sm" onClick={exportToCSV}>
-            <Download size={16} /> Export CSV
-          </button>
-        </div>
-      </div>
 
-      <div className="students-list card">
-        {loading ? (
-          <div className="empty-state">Gathering data...</div>
-        ) : paginatedStudents.length > 0 ? (
-          <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Full Name</th>
-                  <th>Contact Details</th>
-                  <th>District</th>
-                  <th>Age</th>
-                  <th className="text-right">Total (LKR)</th>
-                  <th className="text-right">Paid (LKR)</th>
-                  <th className="text-right">Outstanding (LKR)</th>
-                  <th className="actions-cell">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedStudents.map((student) => (
-                  <tr key={student.id}>
-                    <td>
-                      <div className="student-name-cell" onClick={() => handleViewProfile(student)} style={{ cursor: 'pointer' }}>
-                        <div className="avatar">{student.full_name.charAt(0)}</div>
-                        <div className="name-wrap">
-                          <span className="name-text">{student.full_name}</span>
-                          <div className="student-tags">
-                            <span className="campus-tag">{student.campuses?.name}</span>
-                            {student.course && <span className="course-tag">{student.course} - {student.batch}</span>}
+          <div className="students-list card">
+            {loading ? (
+              <div className="empty-state">Gathering data...</div>
+            ) : paginatedStudents.length > 0 ? (
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Full Name</th>
+                      <th>Contact Details</th>
+                      <th>District</th>
+                      <th>Age</th>
+                      <th className="text-right">Total (LKR)</th>
+                      <th className="text-right">Paid (LKR)</th>
+                      <th className="text-right">Outstanding (LKR)</th>
+                      <th className="actions-cell">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedStudents.map((student) => (
+                      <tr key={student.id}>
+                        <td>
+                          <div className="student-name-cell" onClick={() => handleViewProfile(student)} style={{ cursor: 'pointer' }}>
+                            <div className="avatar">{student.full_name.charAt(0)}</div>
+                            <div className="name-wrap">
+                              <span className="name-text">{student.full_name}</span>
+                              <div className="student-tags">
+                                <span className="campus-tag">{student.campuses?.name}</span>
+                                {student.course && <span className="course-tag">{student.course} - {student.batch}</span>}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="contact-info">
-                        <span className="email-link"><Mail size={12} /> {student.email || 'N/A'}</span>
-                        <span><Phone size={12} /> {student.phone || 'N/A'}</span>
-                      </div>
-                    </td>
-                    <td>{student.district}</td>
-                    <td>{student.age}</td>
-                    <td className="text-right font-mono">LKR {Number(student.total_payment).toLocaleString()}</td>
-                    <td className="text-right font-mono text-success">LKR {Number(student.paid).toLocaleString()}</td>
-                    <td className="text-right font-mono text-error">LKR {Number(student.outstanding).toLocaleString()}</td>
-                    <td className="actions-cell">
-                      <div className="action-row">
-                        <button className="icon-btn" onClick={() => handleOpenModal(student)} title="Edit"><Edit2 size={16} /></button>
-                        <button className="icon-btn text-error" onClick={() => handleDelete(student.id)} title="Delete"><Trash2 size={16} /></button>
-                        <button className="icon-btn" onClick={() => handleViewProfile(student)} title="View Summary"><ChevronRight size={16} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="empty-state">
-            <Users size={48} opacity={0.3} />
-            <p>No student records match your filters.</p>
-          </div>
-        )}
+                        </td>
+                        <td>
+                          <div className="contact-info">
+                            <span className="email-link"><Mail size={12} /> {student.email || 'N/A'}</span>
+                            <span><Phone size={12} /> {student.phone || 'N/A'}</span>
+                          </div>
+                        </td>
+                        <td>{student.district}</td>
+                        <td>{student.age}</td>
+                        <td className="text-right font-mono">LKR {Number(student.total_payment).toLocaleString()}</td>
+                        <td className="text-right font-mono text-success">LKR {Number(student.paid).toLocaleString()}</td>
+                        <td className="text-right font-mono text-error">LKR {Number(student.outstanding).toLocaleString()}</td>
+                        <td className="actions-cell">
+                          <div className="action-row">
+                            <button className="icon-btn" onClick={() => handleOpenModal(student)} title="Edit"><Edit2 size={16} /></button>
+                            <button className="icon-btn text-error" onClick={() => handleDelete(student.id)} title="Delete"><Trash2 size={16} /></button>
+                            <button className="icon-btn" onClick={() => handleViewProfile(student)} title="View Summary"><ChevronRight size={16} /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="empty-state">
+                <Users size={48} opacity={0.3} />
+                <p>No student records match your filters.</p>
+              </div>
+            )}
 
-        {totalPages > 1 && (
-          <div className="pagination">
-            <button
-              className="btn btn-sm btn-outline"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => prev - 1)}
-            >Previous</button>
-            <span className="page-info">Page {currentPage} of {totalPages}</span>
-            <button
-              className="btn btn-sm btn-outline"
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(prev => prev + 1)}
-            >Next</button>
+            {totalPages > 1 && (
+              <div className="pagination">
+                <button
+                  className="btn btn-sm btn-outline"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                >Previous</button>
+                <span className="page-info">Page {currentPage} of {totalPages}</span>
+                <button
+                  className="btn btn-sm btn-outline"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                >Next</button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      ) : (
+        <div className="batch-explorer-grid">
+          {batchStats.length > 0 ? (
+            batchStats.map((batch, idx) => (
+              <div
+                key={idx}
+                className="batch-card card"
+                onClick={() => {
+                  setCourseFilter(batch.course);
+                  setViewMode('registry');
+                }}
+              >
+                <div className="batch-card-header">
+                  <div className="batch-meta">
+                    <span className="campus-label">{batch.campus}</span>
+                    <h3 className="course-name">{batch.course}</h3>
+                    <span className="batch-number">{batch.batch}</span>
+                  </div>
+                  <div className="student-count">
+                    <Users size={16} />
+                    <span>{batch.count} Students</span>
+                  </div>
+                </div>
+                <div className="batch-card-stats">
+                  <div className="mini-stat">
+                    <span className="label">Collected</span>
+                    <span className="value">LKR {batch.paid.toLocaleString()}</span>
+                  </div>
+                  <div className="mini-stat">
+                    <span className="label">Outstanding</span>
+                    <span className="value text-error">LKR {batch.outstanding.toLocaleString()}</span>
+                  </div>
+                </div>
+                <div className="batch-card-footer">
+                  <span className="view-students-link">View Batch Students <ChevronRight size={14} /></span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="empty-state full-width">
+              <Landmark size={48} opacity={0.2} />
+              <p>No batches found. Enroll students with course and batch details to see them here.</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* CREATE/EDIT MODAL */}
       {showModal && (
@@ -541,9 +632,156 @@ const Students = () => {
         .header-actions {
           display: flex;
           justify-content: space-between;
-          align-items: flex-end;
+          align-items: flex-start;
           margin-bottom: 3.5rem;
         }
+
+        .view-toggle-container {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+        }
+
+        .view-toggle {
+          display: flex;
+          background: #f1f5f9;
+          padding: 0.35rem;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+        }
+
+        .toggle-btn {
+          border: none;
+          background: transparent;
+          padding: 0.6rem 1.25rem;
+          border-radius: 10px;
+          font-size: 0.85rem;
+          font-weight: 800;
+          color: #64748b;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+          background: white;
+          color: #006dff;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .batch-explorer-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 2rem;
+          margin-bottom: 4rem;
+        }
+
+        .batch-card {
+          padding: 1.5rem;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: 1px solid #e2e8f0;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .batch-card:hover { 
+          transform: translateY(-5px); 
+          border-color: #006aff;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); 
+        }
+
+        .batch-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+
+        .campus-label {
+          font-size: 0.65rem;
+          font-weight: 800;
+          color: #94a3b8;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          display: block;
+          margin-bottom: 0.25rem;
+        }
+
+        .course-name {
+          font-size: 1.25rem;
+          font-weight: 850;
+          color: #1e293b;
+          letter-spacing: -0.02em;
+          margin-bottom: 0.25rem;
+        }
+
+        .batch-number {
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #006aff;
+          background: #eff6ff;
+          padding: 0.25rem 0.6rem;
+          border-radius: 6px;
+        }
+
+        .student-count {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #64748b;
+          background: #f8fafc;
+          padding: 0.5rem 0.75rem;
+          border-radius: 10px;
+        }
+
+        .batch-card-stats {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+          padding: 1.25rem;
+          background: #f8fafc;
+          border-radius: 16px;
+        }
+
+        .mini-stat {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .mini-stat .label {
+          font-size: 0.65rem;
+          font-weight: 800;
+          color: #94a3b8;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .mini-stat .value {
+          font-size: 0.95rem;
+          font-weight: 800;
+          color: #1e293b;
+        }
+
+        .batch-card-footer {
+          display: flex;
+          justify-content: flex-end;
+          border-top: 1px solid #f1f5f9;
+          padding-top: 1rem;
+        }
+
+        .view-students-link {
+          font-size: 0.85rem;
+          font-weight: 800;
+          color: #006aff;
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+        }
+
+        .empty-state.full-width { grid-column: 1 / -1; min-height: 300px; }
 
         .page-title { font-size: 2.25rem; font-weight: 800; color: #1e293b; letter-spacing: -0.04em; margin-bottom: 0.25rem; }
         .page-subtitle { color: #64748b; font-size: 0.95rem; font-weight: 500; font-family: 'Plus Jakarta Sans', sans-serif; }
