@@ -19,7 +19,7 @@ const Students = () => {
   const [districtFilter, setDistrictFilter] = useState('All')
   const [courseFilter, setCourseFilter] = useState('All')
   const [batchFilter, setBatchFilter] = useState('All')
-  const [viewMode, setViewMode] = useState('registry') // 'registry' or 'explorer'
+  const [viewMode, setViewMode] = useState('explorer') // 'registry' or 'explorer'
   const [currentPage, setCurrentPage] = useState(1)
 
   // Modal State
