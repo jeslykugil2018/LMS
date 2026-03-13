@@ -17,6 +17,7 @@ const Students = () => {
   // filtering & pagination
   const [searchTerm, setSearchTerm] = useState('')
   const [districtFilter, setDistrictFilter] = useState('All')
+  const [courseFilter, setCourseFilter] = useState('All')
   const [currentPage, setCurrentPage] = useState(1)
 
   // Modal State
@@ -31,6 +32,8 @@ const Students = () => {
     district: '',
     age: '',
     campus_id: '',
+    course: '',
+    batch: '',
     total_payment: 0
   })
 
@@ -84,9 +87,10 @@ const Students = () => {
       const matchesSearch = s.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.email?.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesDistrict = districtFilter === 'All' || s.district === districtFilter
-      return matchesSearch && matchesDistrict
+      const matchesCourse = courseFilter === 'All' || s.course === courseFilter
+      return matchesSearch && matchesDistrict && matchesCourse
     })
-  }, [studentsWithPayments, searchTerm, districtFilter])
+  }, [studentsWithPayments, searchTerm, districtFilter, courseFilter])
 
   // Pagination logic
   const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE)
@@ -96,6 +100,7 @@ const Students = () => {
   }, [filteredStudents, currentPage])
 
   const districts = ['All', ...new Set(students.map(s => s.district).filter(Boolean))]
+  const courses = ['All', ...new Set(students.map(s => s.course).filter(Boolean))]
 
   const handleOpenModal = (student = null) => {
     if (student) {
@@ -107,6 +112,8 @@ const Students = () => {
         district: student.district || '',
         age: student.age || '',
         campus_id: student.campus_id,
+        course: student.course || '',
+        batch: student.batch || '',
         total_payment: student.total_payment || 0
       })
     } else {
@@ -118,6 +125,8 @@ const Students = () => {
         district: '',
         age: '',
         campus_id: adminRecord?.campus_id || '',
+        course: '',
+        batch: '',
         total_payment: 0
       })
     }
@@ -236,6 +245,13 @@ const Students = () => {
         <div className="utility-actions">
           <div className="filter-group">
             <Filter size={16} />
+            <select value={courseFilter} onChange={(e) => { setCourseFilter(e.target.value); setCurrentPage(1); }}>
+              <option value="All">All Courses</option>
+              {courses.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div className="filter-group">
+            <Filter size={16} />
             <select value={districtFilter} onChange={(e) => { setDistrictFilter(e.target.value); setCurrentPage(1); }}>
               <option value="All">All Districts</option>
               {districts.filter(d => d !== 'All').map(d => <option key={d} value={d}>{d}</option>)}
@@ -273,7 +289,10 @@ const Students = () => {
                         <div className="avatar">{student.full_name.charAt(0)}</div>
                         <div className="name-wrap">
                           <span className="name-text">{student.full_name}</span>
-                          <span className="campus-tag">{student.campuses?.name}</span>
+                          <div className="student-tags">
+                            <span className="campus-tag">{student.campuses?.name}</span>
+                            {student.course && <span className="course-tag">{student.course} - {student.batch}</span>}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -377,6 +396,26 @@ const Students = () => {
               </div>
               <div className="form-row">
                 <div className="form-group">
+                  <label>Course Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Video Editing"
+                    value={formData.course}
+                    onChange={e => setFormData({ ...formData, course: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Batch No.</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Batch 1"
+                    value={formData.batch}
+                    onChange={e => setFormData({ ...formData, batch: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
                   <label>Assigned Campus</label>
                   <select
                     value={formData.campus_id}
@@ -437,6 +476,37 @@ const Students = () => {
                   <div className="pay-row text-success"><span>Total Paid:</span> <strong>LKR {selectedStudent.paid?.toLocaleString()}</strong></div>
                   <div className="pay-row divider"></div>
                   <div className="pay-row text-error"><span>Outstanding:</span> <strong>LKR {selectedStudent.outstanding?.toLocaleString()}</strong></div>
+                </div>
+              </div>
+
+              <div className="profile-section full-width">
+                <h3><CreditCard size={16} /> Payment History</h3>
+                <div className="payment-history-list">
+                  {payments.filter(p => p.student_id === selectedStudent.id).length > 0 ? (
+                    <table className="mini-table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Method</th>
+                          <th className="text-right">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {payments.filter(p => p.student_id === selectedStudent.id)
+                          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                          .map(p => (
+                            <tr key={p.id}>
+                              <td>{new Date(p.created_at).toLocaleDateString()}</td>
+                              <td>{p.method}</td>
+                              <td className="text-right">LKR {Number(p.amount).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        }
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="no-payments">No payments recorded yet.</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -585,9 +655,11 @@ const Students = () => {
         .data-table tr:hover { background-color: #fcfdfe; }
 
         .student-name-cell { display: flex; align-items: center; gap: 1.25rem; }
-        .name-wrap { display: flex; flex-direction: column; gap: 0.25rem; }
+        .name-wrap { display: flex; flex-direction: column; gap: 0.15rem; }
         .name-text { font-weight: 800; color: #1e293b; font-size: 1.0625rem; }
-        .campus-tag { font-size: 0.6875rem; color: #006dff; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+        .student-tags { display: flex; align-items: center; gap: 0.5rem; }
+        .campus-tag { font-size: 0.65rem; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; background: #f1f5f9; padding: 0.2rem 0.5rem; border-radius: 4px; }
+        .course-tag { font-size: 0.65rem; color: #006dff; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; background: #e0f2fe; padding: 0.2rem 0.5rem; border-radius: 4px; }
 
         .avatar {
           width: 44px;
@@ -667,10 +739,17 @@ const Students = () => {
         .info-item { font-size: 1rem; color: #475569; font-weight: 500; }
         .info-item span { font-weight: 800; color: #94a3b8; width: 100px; display: inline-block; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.02em; }
         
-        .payment-stack { background: #f8fafc; padding: 2rem; border-radius: 20px; border: 1px solid #e2e8f0; }
-        .pay-row { display: flex; justify-content: space-between; margin-bottom: 1rem; font-size: 1.0625rem; }
+        .payment-stack { background: #f8fafc; padding: 1.5rem; border-radius: 20px; border: 1px solid #e2e8f0; }
+        .pay-row { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.95rem; }
         .pay-row:last-child { margin-bottom: 0; }
-        .pay-row.divider { border-top: 2px dashed #cbd5e1; padding-top: 1rem; margin-top: 1rem; }
+        .pay-row.divider { border-top: 1px dashed #cbd5e1; padding-top: 0.75rem; margin-top: 0.75rem; }
+
+        .profile-section.full-width { grid-column: 1 / -1; }
+        .payment-history-list { margin-top: 1rem; }
+        .mini-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .mini-table th { text-align: left; color: #64748b; padding: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+        .mini-table td { padding: 0.75rem 0.5rem; border-bottom: 1px solid #f1f5f9; }
+        .no-payments { text-align: center; padding: 2rem; color: #94a3b8; font-style: italic; }
 
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem; }
         .form-group { margin-bottom: 1.5rem; }
