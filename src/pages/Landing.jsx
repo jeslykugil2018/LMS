@@ -151,7 +151,7 @@ const Landing = () => {
 
         .hero-content h1 {
           font-family: 'Outfit', sans-serif;
-          font-size: 4rem; font-weight: 900; line-height: 1.1; 
+          font-size: 3rem; font-weight: 900; line-height: 1.1; 
           letter-spacing: -0.04em; margin-bottom: 1.5rem;
         }
         .blue-gradient {
@@ -161,7 +161,7 @@ const Landing = () => {
         }
 
         .hero-subtext {
-          font-size: 1.25rem; line-height: 1.6; color: var(--s-text-muted);
+          font-size: 1.1rem; line-height: 1.6; color: var(--s-text-muted);
           margin-bottom: 3rem;
         }
 

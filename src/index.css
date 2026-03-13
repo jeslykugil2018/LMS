@@ -29,6 +29,8 @@ body {
   background-color: var(--bg-main);
   color: var(--text-main);
   line-height: 1.5;
+  font-size: 0.9375rem;
+  /* 15px minimized */
   -webkit-font-smoothing: antialiased;
 }
 

@@ -213,7 +213,7 @@ const Login = () => {
         }
 
         .login-header h1 {
-          font-size: 2rem;
+          font-size: 1.75rem;
           font-weight: 800;
           color: #0f172a;
           margin-bottom: 0.5rem;
@@ -223,7 +223,7 @@ const Login = () => {
         .login-header p {
           color: #64748b;
           font-weight: 500;
-          font-size: 1rem;
+          font-size: 0.9rem;
         }
 
         .form-group {

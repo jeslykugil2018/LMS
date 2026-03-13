@@ -122,7 +122,7 @@ const Finance = () => {
                     <div className="stat-content">
                         <span className="stat-label">Total Collected</span>
                         <h2 className="stat-value text-success">
-                            LKR {payments.reduce((sum, p) => sum + Number(p.amount), 0).toFixed(2)}
+                            LKR {payments.reduce((sum, p) => sum + Number(p.amount), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </h2>
                     </div>
                     <DollarSign size={32} className="stat-icon-bg" />
@@ -152,7 +152,7 @@ const Finance = () => {
                             <th>Student</th>
                             <th>Campus</th>
                             <th>Method</th>
-                            <th>Amount</th>
+                            <th className="text-right">Amount</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
@@ -170,7 +170,7 @@ const Finance = () => {
                                         <CreditCard size={12} /> {p.method}
                                     </span>
                                 </td>
-                                <td><strong className="text-success">LKR {Number(p.amount).toFixed(2)}</strong></td>
+                                <td className="text-right"><strong className="text-success">LKR {Number(p.amount).toFixed(2)}</strong></td>
                                 <td><span className="status-badge active">Cleared</span></td>
                                 <td>
                                     <button
@@ -269,8 +269,8 @@ const Finance = () => {
           margin-bottom: 3.5rem;
         }
 
-        .page-title { font-size: 3rem; font-weight: 800; color: #006dff; letter-spacing: -0.04em; margin-bottom: 0.25rem; }
-        .page-subtitle { color: #64748b; font-size: 1.125rem; font-weight: 500; }
+        .page-title { font-size: 2.25rem; font-weight: 800; color: #1e293b; letter-spacing: -0.04em; margin-bottom: 0.25rem; }
+        .page-subtitle { color: #64748b; font-size: 0.95rem; font-weight: 500; font-family: 'Plus Jakarta Sans', sans-serif; }
         
         .action-btns { display: flex; gap: 1.5rem; }
         
@@ -289,7 +289,7 @@ const Finance = () => {
         .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08); }
         
         .stat-label { font-size: 0.8125rem; text-transform: uppercase; font-weight: 800; color: #94a3b8; letter-spacing: 0.1em; margin-bottom: 0.5rem; display: block; }
-        .stat-value { font-size: 2.5rem; font-weight: 800; color: #1e293b; letter-spacing: -0.02em; }
+        .stat-value { font-size: 1.75rem; font-weight: 900; color: #0f172a; margin-top: 0.25rem; }
         
         .stat-icon-bg {
           color: #10b981;
@@ -345,6 +345,7 @@ const Finance = () => {
             letter-spacing: 0.1em;
             border-bottom: 1px solid #e2e8f0;
         }
+        .data-table th.text-right { text-align: right; } /* Added for right-aligning headers */
 
         .data-table td { padding: 1.5rem 1.25rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         .data-table tr:last-child td { border-bottom: none; }

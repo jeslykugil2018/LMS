@@ -449,8 +449,8 @@ const Students = () => {
           margin-bottom: 3.5rem;
         }
 
-        .page-title { font-size: 3rem; font-weight: 800; color: #006dff; letter-spacing: -0.04em; margin-bottom: 0.25rem; }
-        .page-subtitle { color: #64748b; font-size: 1.125rem; font-weight: 500; }
+        .page-title { font-size: 2.25rem; font-weight: 800; color: #1e293b; letter-spacing: -0.04em; margin-bottom: 0.25rem; }
+        .page-subtitle { color: #64748b; font-size: 0.95rem; font-weight: 500; font-family: 'Plus Jakarta Sans', sans-serif; }
         .action-btns { display: flex; gap: 1.5rem; }
 
         .filters-bar {
@@ -508,8 +508,10 @@ const Students = () => {
             letter-spacing: 0.1em;
             border-bottom: 1px solid #e2e8f0;
         }
-
-        .data-table td { padding: 1.5rem 1.25rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .student-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.875rem; }
+        .student-table th { padding: 1.25rem 1.5rem; background: #f8fafc; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; }
+        .student-table td { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .text-right { text-align: right; }
         .data-table tr:last-child td { border-bottom: none; }
         .data-table tr:hover { background-color: #fcfdfe; }
 

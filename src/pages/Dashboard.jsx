@@ -214,8 +214,8 @@ const Dashboard = () => {
         }
 
         .hero-content { position: relative; z-index: 1; }
-        .hero-content h1 { font-size: 3.5rem; font-weight: 900; margin-bottom: 0.75rem; color: white; letter-spacing: -0.04em; }
-        .hero-content p { font-size: 1.15rem; opacity: 0.6; font-weight: 600; text-transform: uppercase; letter-spacing: 0.15em; }
+        .hero-content h1 { font-size: 2.75rem; font-weight: 900; margin-bottom: 0.75rem; color: white; letter-spacing: -0.04em; }
+        .hero-content p { font-size: 1rem; opacity: 0.6; font-weight: 600; text-transform: uppercase; letter-spacing: 0.15em; }
 
         .section-title {
           font-size: 0.85rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;
@@ -243,8 +243,8 @@ const Dashboard = () => {
         }
         .campus-entry:hover .campus-icon { background: #006dff; color: white; transform: rotate(-5deg); }
 
-        .campus-info h3 { font-size: 1.6rem; font-weight: 800; color: #1e293b; margin-bottom: 0.4rem; letter-spacing: -0.02em; }
-        .campus-info p { font-size: 1.05rem; color: #64748b; display: flex; align-items: center; gap: 0.6rem; font-weight: 500; }
+        .campus-info h3 { font-size: 1.3rem; font-weight: 800; color: #1e293b; margin-bottom: 0.4rem; letter-spacing: -0.02em; }
+        .campus-info p { font-size: 0.95rem; color: #64748b; display: flex; align-items: center; gap: 0.6rem; font-weight: 500; }
 
         .campus-action { display: flex; align-items: center; gap: 0.75rem; color: #94a3b8; font-weight: 800; font-size: 0.9rem; transition: all 0.3s; text-transform: uppercase; }
         .campus-entry:hover .campus-action { color: #006dff; }
@@ -260,8 +260,8 @@ const Dashboard = () => {
           border-radius: 24px; display: flex; align-items: center; justify-content: center;
           box-shadow: 0 10px 20px rgba(0, 109, 255, 0.1);
         }
-        .campus-meta h2 { font-size: 2.5rem; font-weight: 900; margin: 0; letter-spacing: -0.04em; }
-        .campus-meta p { color: #64748b; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+        .campus-meta h2 { font-size: 2.1rem; font-weight: 900; margin: 0; letter-spacing: -0.04em; }
+        .campus-meta p { color: #64748b; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
 
         .btn-change-campus {
           padding: 0.75rem 1.5rem; border-radius: 14px; border: 1px solid #e2e8f0;
@@ -284,8 +284,8 @@ const Dashboard = () => {
         .pill-icon.blue { background: #eff6ff; color: #3b82f6; }
         .pill-icon.emerald { background: #ecfdf5; color: #10b981; }
         .pill-content { display: flex; flex-direction: column; gap: 0.25rem; }
-        .pill-label { font-size: 0.85rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
-        .pill-value { font-size: 1.75rem; font-weight: 900; color: #0f172a; }
+        .pill-label { font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
+        .pill-value { font-size: 1.5rem; font-weight: 900; color: #0f172a; }
 
         /* Nav Grid V2 */
         .nav-grid-v2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }

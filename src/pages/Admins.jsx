@@ -252,8 +252,8 @@ const Admins = () => {
           margin-bottom: 3.5rem;
         }
 
-        .page-title { font-size: 3rem; font-weight: 800; color: #1e293b; letter-spacing: -0.04em; margin-bottom: 0.25rem; }
-        .page-subtitle { color: #64748b; font-size: 1.125rem; font-weight: 500; }
+        .page-title { font-size: 2.25rem; font-weight: 800; color: #1e293b; letter-spacing: -0.04em; margin-bottom: 0.25rem; }
+        .page-subtitle { color: #64748b; font-size: 0.95rem; font-weight: 500; }
 
         .admins-list { 
             border-radius: 24px; 
