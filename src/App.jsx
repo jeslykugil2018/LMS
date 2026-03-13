@@ -24,7 +24,6 @@ function App() {
           <Route element={<AdminLayout />}>
             <Route path="/select-campus" element={<CampusSelection />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/campus/:id" element={<CampusDashboard />} />
             <Route path="/students" element={<Students />} />
             <Route path="/finance" element={<Finance />} />
             <Route path="/campuses" element={<Campuses />} />

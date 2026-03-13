@@ -22,7 +22,7 @@ const CampusSelection = () => {
 
     const handleSelect = (id) => {
         setSelectedCampusId(id)
-        navigate('/')
+        navigate('/dashboard')
     }
 
     if (loading) return (
