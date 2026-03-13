@@ -229,20 +229,6 @@ const Students = () => {
           <p className="page-subtitle">Manage campus enrollments and tuition tracking</p>
         </div>
         <div className="view-toggle-container">
-          <div className="view-toggle">
-            <button
-              className={`toggle-btn ${viewMode === 'registry' ? 'active' : ''}`}
-              onClick={() => setViewMode('registry')}
-            >
-              Registry
-            </button>
-            <button
-              className={`toggle-btn ${viewMode === 'explorer' ? 'active' : ''}`}
-              onClick={() => setViewMode('explorer')}
-            >
-              Batch Explorer
-            </button>
-          </div>
           <button className="btn btn-primary" onClick={() => handleOpenModal()}>
             <Plus size={20} /> Enroll Student
           </button>
