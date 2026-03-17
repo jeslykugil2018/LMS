@@ -69,12 +69,6 @@ const Dashboard = () => {
     { label: 'Finance', desc: 'Track payments and invoices', icon: CreditCard, path: '/finance', color: '#006dff' }
   ]
 
-  if (loading) return (
-    <div className="dashboard-loading">
-      <div className="spinner"></div>
-      <p>Synchronizing administrative data...</p>
-    </div>
-  )
 
   return (
     <div className="dashboard-hub">
@@ -91,7 +85,12 @@ const Dashboard = () => {
       </div>
 
       <div className="dashboard-content">
-        {!selectedCampusId ? (
+        {loading ? (
+          <div className="dashboard-loading-inline">
+            <div className="spinner"></div>
+            <p>Fetching campus data...</p>
+          </div>
+        ) : !selectedCampusId ? (
           /* Selection View */
           <section className="hub-section fade-in">
             <h2 className="section-title">Select Campus to Manage</h2>
@@ -142,14 +141,14 @@ const Dashboard = () => {
                 <div className="pill-icon blue"><Users size={20} /></div>
                 <div className="pill-content">
                   <span className="pill-label">Total Enrollment</span>
-                  <span className="pill-value">{campusStats.totalStudents} Students</span>
+                  <span className="pill-value">{loading ? '...' : `${campusStats.totalStudents} Students`}</span>
                 </div>
               </div>
               <div className="stat-pill-v2">
                 <div className="pill-icon emerald"><Sparkles size={20} /></div>
                 <div className="pill-content">
                   <span className="pill-label">Collections (Today)</span>
-                  <span className="pill-value">LKR {campusStats.todayPayments.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  <span className="pill-value">{loading ? '...' : `LKR ${campusStats.todayPayments.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}</span>
                 </div>
               </div>
             </div>

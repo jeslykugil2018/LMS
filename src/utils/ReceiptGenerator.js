@@ -3,208 +3,163 @@ import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 
 export const generateReceipt = (payment) => {
-    console.log('--- Generating Premium Academic Invoice v3 ---');
+    console.log('--- Generating Ultra-Modern Minimal Receipt ---');
 
     try {
         const doc = new jsPDF();
-        const campusName = payment.students?.campuses?.name || 'MINDMOVER ACADEMY';
+        const campusName = payment.students?.campuses?.name || 'NORTHEX CAMPUS';
         const student = payment.students || {};
 
-        // --- Color Palette ---
-        const primaryBlue = [0, 109, 255]; // Brand Blue (#006dff)
-        const textMain = [30, 41, 59]; // Deep Slate (#1e293b)
-        const textMuted = [100, 116, 139]; // Slate (#64748b)
-        const bgLight = [248, 250, 252]; // Soft Gray (#f1f5f9)
+        // --- Design Tokens (Soft Neutrals + Accent) ---
+        const colors = {
+            accent: [0, 109, 255],     // #006aff
+            textDark: [15, 23, 42],    // #0f172a
+            textMuted: [100, 116, 139], // #64748b
+            neutralBg: [248, 250, 252], // #f8fafc
+            border: [226, 232, 240]    // #e2e8f0
+        };
 
-        // --- 1. Background & Modern Header ---
-        doc.setFillColor(255, 255, 255);
-        doc.rect(0, 0, 210, 297, 'F');
+        // --- 1. Header Section ---
+        const isNorthex = campusName.toLowerCase().includes('northex');
 
-        // Top Header Section
-        doc.setFillColor(...bgLight);
-        doc.rect(0, 0, 210, 60, 'F');
-        doc.setFillColor(...primaryBlue);
-        doc.rect(0, 0, 210, 4, 'F');
-
-        // Stylized Academic Logo
-        const logoX = 20;
-        const logoY = 25;
-        doc.setFillColor(...primaryBlue);
-        doc.rect(logoX, logoY, 12, 8, 'F');
-        doc.triangle(logoX - 4, logoY + 4, logoX + 16, logoY + 4, logoX + 6, logoY - 4, 'F');
-
-        doc.setTextColor(...primaryBlue);
-        doc.setFontSize(22);
+        // Minimalist Logo (Left)
+        doc.setFillColor(isNorthex ? 0 : 15, isNorthex ? 109 : 23, isNorthex ? 255 : 42);
+        doc.roundedRect(20, 15, 12, 12, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255);
         doc.setFont('helvetica', 'bold');
-        doc.text(campusName.toUpperCase(), 40, 30);
-
         doc.setFontSize(8);
+        doc.text(isNorthex ? 'N' : 'U', 25, 23, { align: 'center' });
+
+        // Institution Name (Right - Bold Modern Font)
+        doc.setTextColor(...colors.textDark);
+        doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(148, 163, 184);
-        doc.text('OFFICIAL ACADEMIC RECORD & RECEIPT', 40, 36);
+        doc.text(campusName.toUpperCase(), 190, 24, { align: 'right' });
 
-        // Header Right: Invoice Summary
-        doc.setTextColor(...textMain);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Reference:`, 190, 25, { align: 'right' });
-        doc.setFont('helvetica', 'bold');
-        doc.text(`INV-${String(payment.id || '001').toUpperCase().slice(0, 8)}`, 190, 30, { align: 'right' });
+        // Thin Horizontal Divider
+        doc.setDrawColor(...colors.border);
+        doc.setLineWidth(0.2);
+        doc.line(20, 35, 190, 35);
 
-        doc.setFont('helvetica', 'normal');
-        doc.text(`${format(new Date(payment.created_at || new Date()), 'dd MMM yyyy')}`, 190, 36, { align: 'right' });
+        // --- 2. Student Details (Rounded Container) ---
+        const detailsY = 45;
+        doc.setFillColor(...colors.neutralBg);
+        doc.roundedRect(20, detailsY, 170, 42, 4, 4, 'F');
 
-        // --- 2. Information Blocks ---
-        const startY = 80;
-
-        // Student Detail Block
-        doc.setFillColor(...bgLight);
-        doc.roundedRect(20, startY, 80, 45, 2, 2, 'F');
-
-        doc.setTextColor(...primaryBlue);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'bold');
-        doc.text('STUDENT INFORMATION', 25, startY + 10);
-
-        doc.setTextColor(...textMain);
-        doc.setFontSize(11);
-        doc.text(student.full_name || 'Anonymous Student', 25, startY + 20);
-
-        doc.setTextColor(...textMuted);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Email: ${student.email || 'N/A'}`, 25, startY + 28);
-        doc.text(`Campus: ${campusName}`, 25, startY + 34);
-        doc.text(`ID: PID-${String(student.id || '000').slice(0, 6)}`, 25, startY + 40);
-
-        // Transaction Block
-        doc.setFillColor(...bgLight);
-        doc.roundedRect(110, startY, 80, 45, 2, 2, 'F');
-
-        doc.setTextColor(...primaryBlue);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'bold');
-        doc.text('TRANSACTION DETAILS', 115, startY + 10);
-
-        doc.setTextColor(...textMain);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Method: ${payment.method || 'Standard Deposit'}`, 115, startY + 20);
-        doc.text(`Currency: Sri Lankan Rupee (LKR)`, 115, startY + 26);
-        doc.text(`Status: Verified & Cleared`, 115, startY + 32);
-
-        // Success Indicator
-        doc.setFillColor(34, 197, 94);
-        doc.circle(118, startY + 39, 2.5, 'F');
-        doc.setTextColor(22, 101, 52);
+        doc.setTextColor(...colors.textMuted);
         doc.setFontSize(7);
         doc.setFont('helvetica', 'bold');
-        doc.text('GENUINE TRANSACTION', 123, startY + 40);
+        doc.text('STUDENT INFORMATION', 28, detailsY + 10);
 
-        // --- 3. Itemized Charges Table ---
-        const tableData = [
-            [
-                '01',
-                payment.note || 'Full Semester Tuition / Admission Fees',
-                '1 Unit',
-                `LKR ${Number(payment.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
-            ]
-        ];
+        doc.setTextColor(...colors.textDark);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text(student.full_name || 'N/A', 28, detailsY + 20);
+
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...colors.textMuted);
+        doc.text(`${student.course || 'Independent Study'} Program`, 28, detailsY + 28);
+
+        // Contact Row (Minimalist Icons representation)
+        doc.setFontSize(8);
+        doc.text(`Email: ${student.email || 'N/A'}`, 28, detailsY + 36);
+        doc.text(`Phone: ${student.phone || 'N/A'}`, 100, detailsY + 36);
+
+        // --- 3. Payment Items Table (Clean, Borderless) ---
+        const tableStartY = 100;
+        const subtotal = Number(payment.amount);
 
         autoTable(doc, {
-            startY: 140,
-            head: [['#', 'DESCRIPTION', 'QTY', 'AMOUNT']],
-            body: tableData,
+            startY: tableStartY,
+            head: [['Description / Fee Type', 'Price', 'Total']],
+            body: [
+                [
+                    payment.note || 'Full Academic Tuition Payment',
+                    `LKR ${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+                    `LKR ${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                ]
+            ],
             theme: 'plain',
             headStyles: {
-                textColor: [...textMuted],
+                textColor: colors.textMuted,
                 fontSize: 8,
                 fontStyle: 'bold',
                 fillColor: [255, 255, 255],
-                cellPadding: 5
+                cellPadding: { bottom: 5, top: 0, left: 0, right: 0 }
             },
             bodyStyles: {
                 fontSize: 10,
-                textColor: [...textMain],
-                cellPadding: 10
+                textColor: colors.textDark,
+                cellPadding: { top: 8, bottom: 8, left: 0, right: 0 }
             },
             columnStyles: {
-                0: { cellWidth: 15 },
-                1: { cellWidth: 110 },
-                2: { cellWidth: 25 },
-                3: { halign: 'right', fontStyle: 'bold' }
+                0: { cellWidth: 110 },
+                1: { halign: 'right' },
+                2: { halign: 'right', fontStyle: 'bold' }
             },
             didDrawCell: (data) => {
                 if (data.section === 'body') {
-                    doc.setDrawColor(241, 245, 249);
+                    doc.setDrawColor(...colors.border);
                     doc.setLineWidth(0.1);
                     doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
                 }
             }
         });
 
-        // --- 4. Total Area ---
-        const finalY = (doc.lastAutoTable?.finalY || 180) + 15;
+        // --- 4. Amount Summary (Right-Aligned Highlighted Box) ---
+        const summaryY = doc.lastAutoTable.finalY + 15;
 
-        doc.setTextColor(148, 163, 184);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.text('Subtotal:', 150, finalY);
-        doc.text(`LKR ${Number(payment.amount || 0).toLocaleString()}`, 190, finalY, { align: 'right' });
+        // Highlight Box for Grand Total
+        doc.setFillColor(...colors.neutralBg);
+        doc.roundedRect(130, summaryY, 60, 25, 3, 3, 'F');
 
-        doc.text('Institutional Discount:', 150, finalY + 7);
-        doc.text('LKR 0.00', 190, finalY + 7, { align: 'right' });
-
-        doc.setFillColor(...primaryBlue);
-        doc.rect(130, finalY + 12, 60, 15, 'F');
-
-        doc.setTextColor(255, 255, 255);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.text('NET TOTAL:', 135, finalY + 22);
-        doc.setFontSize(11);
-        doc.text(`LKR ${Number(payment.amount || 0).toLocaleString()}`, 185, finalY + 22, { align: 'right' });
-
-        // --- 5. Footer Modernization ---
-        const footerStartY = 245;
-
-        // Security Placeholder
-        doc.setDrawColor(241, 245, 249);
-        doc.rect(20, footerStartY, 25, 25, 'D');
-        doc.setTextColor(226, 232, 240);
-        doc.setFontSize(6);
-        doc.text('CODE AUTH', 25, footerStartY + 15);
-
-        // Support Message
-        doc.setTextColor(148, 163, 184);
+        doc.setTextColor(...colors.textMuted);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        doc.text('This is a computer-verified statement of account.', 55, footerStartY + 10);
-        doc.text(`For any queries: support@${campusName.toLowerCase()}-academy.com`, 55, footerStartY + 16);
+        doc.text('Subtotal:', 138, summaryY + 8);
+        doc.text(`LKR ${subtotal.toLocaleString()}`, 182, summaryY + 8, { align: 'right' });
 
-        // Academic Seal
-        doc.setDrawColor(...primaryBlue);
-        doc.setLineWidth(0.5);
-        doc.circle(170, footerStartY + 12, 12, 'D');
-        doc.setFontSize(5);
-        doc.setTextColor(...primaryBlue);
+        doc.setTextColor(...colors.accent);
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.text('VERIFIED', 170, footerStartY + 11, { align: 'center' });
-        doc.text('ACADEMIC', 170, footerStartY + 14, { align: 'center' });
+        doc.text('Grand Total:', 138, summaryY + 18);
+        doc.setFontSize(12);
+        doc.text(`LKR ${subtotal.toLocaleString()}`, 182, summaryY + 18, { align: 'right' });
 
-        // Bottom Accent
-        doc.setFillColor(...primaryBlue);
-        doc.rect(0, 290, 210, 7, 'F');
-        doc.setTextColor(255, 255, 255);
+        // --- 5. Payment Method & Transaction (Minimalist Section) ---
+        const metaY = summaryY + 8;
+        doc.setTextColor(...colors.textMuted);
         doc.setFontSize(7);
-        doc.text(`${campusName.toUpperCase()} ACADEMY PORTAL | OFFICIAL RECORD`, 105, 295, { align: 'center' });
+        doc.setFont('helvetica', 'bold');
+        doc.text('PAYMENT DETAILS', 20, metaY);
 
-        // --- 6. Save ---
-        const safeName = (student.full_name || 'Invoice').replace(/\s+/g, '_');
-        doc.save(`${campusName}_INV_${safeName}.pdf`);
+        doc.setTextColor(...colors.textDark);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Method: ${payment.method || 'Standard'}`, 20, metaY + 8);
+        doc.text(`ID: TXN-${String(payment.id).padStart(6, '0')}`, 20, metaY + 15);
+        doc.text(`Date: ${format(new Date(payment.created_at), 'dd MMM yyyy')}`, 20, metaY + 22);
+
+        // --- 6. Footer ---
+        const footerY = 270;
+        doc.setDrawColor(...colors.border);
+        doc.line(20, footerY, 190, footerY);
+
+        doc.setTextColor(...colors.textMuted);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Thank you for your payment.', 105, footerY + 10, { align: 'center' });
+
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.text('This is a computer-generated receipt.', 105, footerY + 16, { align: 'center' });
+
+        const safeName = (student.full_name || 'Receipt').replace(/\s+/g, '_');
+        doc.save(`Receipt_Minimal_${safeName}.pdf`);
 
     } catch (err) {
-        console.error('Receipt Generation Error:', err);
-        alert('Receipt Generation Failed: ' + err.message);
+        console.error('Minimal Receipt Generation Error:', err);
+        alert('Could not generate minimal receipt: ' + err.message);
     }
 };

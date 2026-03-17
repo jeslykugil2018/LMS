@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { DollarSign, Calendar, Search, CreditCard, Receipt, Plus, Download, ArrowLeft } from 'lucide-react'
+import { DollarSign, Calendar, Search, CreditCard, Receipt, Plus, Download, ArrowLeft, Edit2, Trash2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { format } from 'date-fns'
@@ -12,7 +12,9 @@ const Finance = () => {
     const navigate = useNavigate()
     const [loading, setLoading] = useState(true)
     const [showModal, setShowModal] = useState(false)
+    const [showEditModal, setShowEditModal] = useState(false)
     const [newPayment, setNewPayment] = useState({ student_id: '', amount: '', method: 'Cash', note: '' })
+    const [editingPayment, setEditingPayment] = useState(null)
     const [students, setStudents] = useState([])
 
     useEffect(() => {
@@ -77,6 +79,56 @@ const Finance = () => {
         setLoading(false)
     }
 
+    const handleEditPayment = (payment) => {
+        setEditingPayment({
+            id: payment.id,
+            student_id: payment.student_id,
+            amount: payment.amount,
+            method: payment.method,
+            note: payment.note || ''
+        })
+        setShowEditModal(true)
+    }
+
+    const handleUpdatePayment = async (e) => {
+        e.preventDefault()
+        setLoading(true)
+        const { error } = await supabase
+            .from('payments')
+            .update({
+                amount: editingPayment.amount,
+                method: editingPayment.method,
+                note: editingPayment.note
+            })
+            .eq('id', editingPayment.id)
+
+        if (error) {
+            alert('Error updating payment: ' + error.message)
+        } else {
+            setShowEditModal(false)
+            fetchPayments()
+            setEditingPayment(null)
+        }
+        setLoading(false)
+    }
+
+    const handleDeletePayment = async (id) => {
+        if (window.confirm('Are you sure you want to delete this payment record? This will affect the student\'s balance.')) {
+            setLoading(true)
+            const { error } = await supabase
+                .from('payments')
+                .delete()
+                .eq('id', id)
+
+            if (error) {
+                alert('Error deleting payment: ' + error.message)
+            } else {
+                fetchPayments()
+            }
+            setLoading(false)
+        }
+    }
+
     const exportToCSV = () => {
         const headers = ['Date', 'Student', 'Campus', 'Method', 'Amount']
         const rows = payments.map(p => [
@@ -130,11 +182,24 @@ const Finance = () => {
                 <div className="stat-card card">
                     <div className="stat-content">
                         <span className="stat-label">Transactions</span>
-                        <h2 className="stat-value">{payments.length}</h2>
+                        <h2 className="stat-value">{loading ? '...' : payments.length}</h2>
                     </div>
                     <Receipt size={32} className="stat-icon-bg" />
                 </div>
             </div>
+
+            <style>{`
+                .loading-spinner {
+                    width: 32px;
+                    height: 32px;
+                    border: 3px solid #f1f5f9;
+                    border-top: 3px solid #006aff;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                    margin: 0 auto;
+                }
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            `}</style>
 
             <div className="payments-list card">
                 <div className="card-header">
@@ -154,12 +219,15 @@ const Finance = () => {
                             <th>Method</th>
                             <th className="text-right">Amount</th>
                             <th>Status</th>
-                            <th>Action</th>
+                            <th className="text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading ? (
-                            <tr><td colSpan="7" className="text-center">Loading payments...</td></tr>
+                            <tr><td colSpan="7" className="text-center py-8">
+                                <div className="loading-spinner"></div>
+                                <p style={{ marginTop: '1rem', color: '#94a3b8', fontWeight: 600 }}>Syncing financial data...</p>
+                            </td></tr>
                         ) : payments.map((p) => (
                             <tr key={p.id}>
                                 <td>{format(new Date(p.created_at), 'MMM dd, yyyy HH:mm')}</td>
@@ -172,13 +240,30 @@ const Finance = () => {
                                 </td>
                                 <td className="text-right"><strong className="text-success">LKR {Number(p.amount).toFixed(2)}</strong></td>
                                 <td><span className="status-badge active">Cleared</span></td>
-                                <td>
-                                    <button
-                                        className="btn btn-outline btn-sm"
-                                        onClick={() => generateReceipt(p)}
-                                    >
-                                        <Receipt size={14} /> Receipt
-                                    </button>
+                                <td className="actions-cell">
+                                    <div className="action-row">
+                                        <button
+                                            className="icon-btn"
+                                            onClick={() => generateReceipt(p)}
+                                            title="Receipt"
+                                        >
+                                            <Receipt size={16} />
+                                        </button>
+                                        <button
+                                            className="icon-btn"
+                                            onClick={() => handleEditPayment(p)}
+                                            title="Edit"
+                                        >
+                                            <Edit2 size={16} />
+                                        </button>
+                                        <button
+                                            className="icon-btn text-error"
+                                            onClick={() => handleDeletePayment(p.id)}
+                                            title="Delete"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -236,6 +321,58 @@ const Finance = () => {
                             <div className="modal-actions">
                                 <button type="button" className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
                                 <button type="submit" className="btn btn-primary">Save Transaction</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showEditModal && editingPayment && (
+                <div className="modal-overlay">
+                    <div className="modal-card card">
+                        <h2>Edit Payment Record</h2>
+                        <form onSubmit={handleUpdatePayment}>
+                            <div className="form-group">
+                                <label>Student</label>
+                                <input
+                                    type="text"
+                                    value={payments.find(p => p.id === editingPayment.id)?.students?.full_name || ''}
+                                    disabled
+                                />
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Amount (LKR)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={editingPayment.amount}
+                                        onChange={(e) => setEditingPayment({ ...editingPayment, amount: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Method</label>
+                                    <select
+                                        value={editingPayment.method}
+                                        onChange={(e) => setEditingPayment({ ...editingPayment, method: e.target.value })}
+                                    >
+                                        <option>Cash</option>
+                                        <option>Bank Transfer</option>
+                                        <option>Card</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label>Note (Optional)</label>
+                                <textarea
+                                    value={editingPayment.note}
+                                    onChange={(e) => setEditingPayment({ ...editingPayment, note: e.target.value })}
+                                />
+                            </div>
+                            <div className="modal-actions">
+                                <button type="button" className="btn btn-outline" onClick={() => setShowEditModal(false)}>Cancel</button>
+                                <button type="submit" className="btn btn-primary">Update Transaction</button>
                             </div>
                         </form>
                     </div>
@@ -445,6 +582,24 @@ const Finance = () => {
         .btn-sm { padding: 0.75rem 1.25rem; font-size: 0.875rem; border-radius: 10px; }
 
         .text-center { text-align: center; padding: 5rem; color: #64748b; font-weight: 600; font-size: 1.125rem; }
+
+        .actions-cell { text-align: right; }
+        .action-row { display: flex; gap: 0.75rem; justify-content: flex-end; }
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-btn:hover { background: #f1f5f9; color: #006aff; }
+        .icon-btn.text-error:hover { background: #fef2f2; color: #ef4444; }
+        .text-error { color: #ef4444; }
       `}</style>
         </div>
     )

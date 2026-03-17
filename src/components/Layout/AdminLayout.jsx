@@ -6,11 +6,14 @@ import { useAuth } from '../../contexts/AuthContext'
 const AdminLayout = () => {
   const { user, adminRecord, selectedCampusId, loading } = useAuth()
 
-  if (loading) return (
-    <div style={{ display: 'flex', height: '100vh', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-      <div className="loader">Loading...</div>
+  // Move loading guard inside the layout to keep Sidebar visible
+  const content = loading ? (
+    <div style={{ display: 'flex', height: '60vh', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+      <div className="loader">Synchronizing...</div>
       <p style={{ color: 'var(--text-muted)' }}>Checking admin permissions...</p>
     </div>
+  ) : (
+    <Outlet />
   )
 
   if (!user) return <Navigate to="/login" replace />
@@ -40,7 +43,7 @@ const AdminLayout = () => {
     <div className="layout">
       <Sidebar />
       <main className="content">
-        <Outlet />
+        {content}
       </main>
 
       <style>{`

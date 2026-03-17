@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Search, Filter, Mail, Phone, MapPin, Edit2, Trash2, ChevronRight, Download, Users, Landmark, CreditCard, DollarSign, ArrowLeft, Check } from 'lucide-react'
+import { Plus, Search, Filter, Mail, Phone, Edit2, Trash2, ChevronRight, Download, Users, Landmark, DollarSign, ArrowLeft, Check, CreditCard } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { useRef } from 'react'
 
 const PREDEFINED_COURSES = [
   'Video Editing',
@@ -23,14 +22,13 @@ const Students = () => {
   const [payments, setPayments] = useState([])
   const [campuses, setCampuses] = useState([])
   const [loading, setLoading] = useState(true)
-  const fileInputRef = useRef(null)
 
   // filtering & pagination
   const [searchTerm, setSearchTerm] = useState('')
   const [districtFilter, setDistrictFilter] = useState('All')
   const [courseFilter, setCourseFilter] = useState('All')
   const [batchFilter, setBatchFilter] = useState('All')
-  const [viewMode, setViewMode] = useState('explorer') // 'registry' or 'explorer'
+  const [viewMode, setViewMode] = useState('registry')
   const [currentPage, setCurrentPage] = useState(1)
 
   // Modal State
@@ -139,8 +137,9 @@ const Students = () => {
   }, [filteredStudents, currentPage])
 
   const districts = ['All', ...new Set(students.map(s => s.district).filter(Boolean))]
-  const courses = ['All', ...new Set(students.map(s => s.course).filter(Boolean))]
+  const courses = ['All', ...PREDEFINED_COURSES]
   const batchesList = ['All', 'Batch 1', 'Batch 2', 'Batch 3', 'Batch 4', 'Batch 5']
+
 
   const handleOpenModal = (student = null) => {
     if (student) {
@@ -206,7 +205,7 @@ const Students = () => {
       alert('Error saving student: ' + error.message)
     } else {
       setShowModal(false)
-      fetchData()
+      await fetchData() // Await data fetch to prevent blank screen flicker
     }
     setLoading(false)
   }
@@ -219,54 +218,6 @@ const Students = () => {
     }
   }
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = async (event) => {
-      const text = event.target.result
-      const rows = text.split('\n').filter(row => row.trim() !== '')
-      if (rows.length < 2) {
-        alert('CSV file must have at least a header and one data row.')
-        return
-      }
-
-      const headers = rows[0].split(',').map(h => h.trim().toLowerCase())
-      const studentData = rows.slice(1).map(row => {
-        const values = row.split(',').map(v => v.trim())
-        const obj = {}
-        headers.forEach((h, i) => {
-          // Map CSV headers to database columns
-          let key = h
-          if (h === 'name' || h === 'full name') key = 'full_name'
-          if (h === 'phone number') key = 'phone'
-          if (h === 'tuition' || h === 'total') key = 'total_payment'
-          obj[key] = values[i]
-        })
-
-        // Add default student properties
-        return {
-          ...obj,
-          campus_id: adminRecord?.campus_id || obj.campus_id,
-          age: obj.age ? parseInt(obj.age) : null,
-          total_payment: obj.total_payment ? parseFloat(obj.total_payment) : 0
-        }
-      })
-
-      setLoading(true)
-      const { error } = await supabase.from('students').insert(studentData)
-      if (error) {
-        alert('Error importing students: ' + error.message)
-      } else {
-        alert(`Successfully imported ${studentData.length} students.`)
-        fetchData()
-      }
-      setLoading(false)
-    }
-    reader.readAsText(file)
-    e.target.value = null // Reset input
-  }
 
   const exportToCSV = () => {
     const headers = ['Full Name', 'Email', 'Phone', 'District', 'Age', 'Total', 'Paid', 'Outstanding']
@@ -285,44 +236,11 @@ const Students = () => {
     <div className="students-page">
       <div className="header-actions">
         <div>
-          <h1 className="page-title">
-            {viewMode === 'registry' ? (
-              <>
-                <span style={{ cursor: 'pointer', opacity: 0.5 }} onClick={() => { setViewMode('explorer'); setCourseFilter('All'); setBatchFilter('All'); }}>Explorer</span>
-                <span style={{ margin: '0 0.5rem', opacity: 0.3 }}>/</span>
-                {courseFilter !== 'All' ? courseFilter : 'All Courses'}
-                {batchFilter !== 'All' && (
-                  <>
-                    <span style={{ margin: '0 0.5rem', opacity: 0.3 }}>/</span>
-                    {batchFilter}
-                  </>
-                )}
-              </>
-            ) : (
-              'Batch Explorer'
-            )}
-          </h1>
-          <p className="page-subtitle">
-            {viewMode === 'registry'
-              ? `Viewing students for ${courseFilter !== 'All' ? courseFilter : 'all courses'}${batchFilter !== 'All' ? `, ${batchFilter}` : ''}`
-              : 'Manage and group students by their academic programs'}
-          </p>
+          <h1 className="page-title">Student Management</h1>
         </div>
-        <div className="view-toggle-container">
-          {viewMode === 'registry' && (
-            <button className="btn btn-outline" onClick={() => { setViewMode('explorer'); setCourseFilter('All'); setBatchFilter('All'); }}>
-              <ArrowLeft size={18} /> Back to Explorer
-            </button>
-          )}
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileUpload}
-            accept=".csv"
-            style={{ display: 'none' }}
-          />
-          <button className="btn btn-outline" onClick={() => fileInputRef.current.click()}>
-            <Download size={20} /> Import CSV
+        <div className="top-action-bar">
+          <button className="btn btn-outline" onClick={exportToCSV} title="Export to CSV">
+            <Download size={18} /> Export CSV
           </button>
           <button className="btn btn-primary" onClick={() => handleOpenModal()}>
             <Plus size={20} /> Enroll Student
@@ -331,208 +249,132 @@ const Students = () => {
       </div>
 
 
-      <div className="stats-overview">
-        <div className="stat-card">
-          <div className="stat-icon-s blue"><Users size={20} /></div>
-          <div className="stat-info">
-            <span className="stat-label">Total Enrollments</span>
-            <h2 className="stat-value">{filteredStudents.length}</h2>
-          </div>
+
+      <div className="utility-bar card">
+        <div className="search-box">
+          <Search size={18} className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search students..."
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+          />
         </div>
-        <div className="stat-card">
-          <div className="stat-icon-s emerald"><Check size={20} /></div>
-          <div className="stat-info">
-            <span className="stat-label">Fully Paid</span>
-            <h2 className="stat-value">{filteredStudents.filter(s => s.outstanding <= 0).length}</h2>
+
+        <div className="utility-actions">
+          <div className="filter-group">
+            <Filter size={16} />
+            <select value={courseFilter} onChange={(e) => { setCourseFilter(e.target.value); setCurrentPage(1); }}>
+              <option value="All">All Courses</option>
+              {courses.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon-s violet"><DollarSign size={20} /></div>
-          <div className="stat-info">
-            <span className="stat-label">Pending Revenue</span>
-            <h2 className="stat-value" style={{ color: '#ef4444' }}>
-              LKR {filteredStudents.reduce((sum, s) => sum + s.outstanding, 0).toLocaleString()}
-            </h2>
+          <div className="filter-group">
+            <Filter size={16} />
+            <select value={batchFilter} onChange={(e) => { setBatchFilter(e.target.value); setCurrentPage(1); }}>
+              <option value="All">All Batches</option>
+              {batchesList.filter(b => b !== 'All').map(b => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
+          <div className="filter-group">
+            <Filter size={16} />
+            <select value={districtFilter} onChange={(e) => { setDistrictFilter(e.target.value); setCurrentPage(1); }}>
+              <option value="All">All Districts</option>
+              {districts.filter(d => d !== 'All').map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
           </div>
         </div>
       </div>
 
-      {viewMode === 'registry' ? (
-        <>
-          <div className="utility-bar card">
-            <div className="search-box">
-              <Search size={18} className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search students..."
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              />
-            </div>
-
-            <div className="utility-actions">
-              <div className="filter-group">
-                <Filter size={16} />
-                <select value={courseFilter} onChange={(e) => { setCourseFilter(e.target.value); setCurrentPage(1); }}>
-                  <option value="All">All Courses</option>
-                  {courses.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <div className="filter-group">
-                <Filter size={16} />
-                <select value={batchFilter} onChange={(e) => { setBatchFilter(e.target.value); setCurrentPage(1); }}>
-                  <option value="All">All Batches</option>
-                  {batchesList.filter(b => b !== 'All').map(b => <option key={b} value={b}>{b}</option>)}
-                </select>
-              </div>
-              <div className="filter-group">
-                <Filter size={16} />
-                <select value={districtFilter} onChange={(e) => { setDistrictFilter(e.target.value); setCurrentPage(1); }}>
-                  <option value="All">All Districts</option>
-                  {districts.filter(d => d !== 'All').map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-              </div>
-              <div className="filter-group">
-                <Filter size={16} />
-                <button className="btn btn-outline btn-sm" onClick={() => fileInputRef.current.click()}>
-                  <Plus size={16} /> Import Students
-                </button>
-              </div>
-              <button className="btn btn-outline btn-sm" onClick={exportToCSV}>
-                <Download size={16} /> Export CSV
-              </button>
-            </div>
-          </div>
-
-          <div className="students-list card">
-            {loading ? (
-              <div className="empty-state">Gathering data...</div>
-            ) : paginatedStudents.length > 0 ? (
-              <div className="table-container">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Full Name</th>
-                      <th>Contact Details</th>
-                      <th>District</th>
-                      <th>Age</th>
-                      <th className="text-right">Total (LKR)</th>
-                      <th className="text-right">Paid (LKR)</th>
-                      <th className="text-right">Outstanding (LKR)</th>
-                      <th className="actions-cell">Actions</th>
+      <div className="view-content-area">
+        <div className="students-list-view card">
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Full Name</th>
+                  <th>Contact Info</th>
+                  <th>District</th>
+                  <th>Enrollment</th>
+                  <th className="text-right">Outstanding (LKR)</th>
+                  <th className="actions-cell">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan="6" className="text-center py-8">
+                    <div className="loading-spinner"></div>
+                    <p style={{ marginTop: '1rem', color: '#94a3b8', fontWeight: 600 }}>Syncing registry...</p>
+                  </td></tr>
+                ) : paginatedStudents.length > 0 ? (
+                  paginatedStudents.map((student) => (
+                    <tr key={student.id}>
+                      <td>
+                        <div className="student-name-cell" onClick={() => handleViewProfile(student)} style={{ cursor: 'pointer' }}>
+                          <div className="avatar">{student.full_name.charAt(0)}</div>
+                          <div className="name-wrap">
+                            <span className="name-text">{student.full_name}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="contact-info">
+                          <span className="info-item"><Mail size={12} /> {student.email || 'N/A'}</span>
+                          <span className="info-item"><Phone size={12} /> {student.phone || 'N/A'}</span>
+                        </div>
+                      </td>
+                      <td>{student.district}</td>
+                      <td>
+                        <div className="enrollment-info">
+                          <span className="course">{student.course}</span>
+                          <span className="batch">{student.batch}</span>
+                        </div>
+                      </td>
+                      <td className="text-right font-mono text-error">
+                        <span className={`status-pill ${student.outstanding > 0 ? 'warning' : 'success'}`}>
+                          {student.outstanding > 0 ? `LKR ${student.outstanding.toLocaleString()}` : 'Fully Paid'}
+                        </span>
+                      </td>
+                      <td className="actions-cell">
+                        <div className="action-row">
+                          <button className="icon-btn" onClick={() => handleOpenModal(student)} title="Edit"><Edit2 size={16} /></button>
+                          <button className="icon-btn text-error" onClick={() => handleDelete(student.id)} title="Delete"><Trash2 size={16} /></button>
+                          <button className="icon-btn" onClick={() => handleViewProfile(student)} title="View Detail"><ChevronRight size={16} /></button>
+                        </div>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedStudents.map((student) => (
-                      <tr key={student.id}>
-                        <td>
-                          <div className="student-name-cell" onClick={() => handleViewProfile(student)} style={{ cursor: 'pointer' }}>
-                            <div className="avatar">{student.full_name.charAt(0)}</div>
-                            <div className="name-wrap">
-                              <span className="name-text">{student.full_name}</span>
-                              <div className="student-tags">
-                                <span className="campus-tag">{student.campuses?.name}</span>
-                                {student.course && <span className="course-tag">{student.course} - {student.batch}</span>}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="contact-info">
-                            <span className="email-link"><Mail size={12} /> {student.email || 'N/A'}</span>
-                            <span><Phone size={12} /> {student.phone || 'N/A'}</span>
-                          </div>
-                        </td>
-                        <td>{student.district}</td>
-                        <td>{student.age}</td>
-                        <td className="text-right font-mono">LKR {Number(student.total_payment).toLocaleString()}</td>
-                        <td className="text-right font-mono text-success">LKR {Number(student.paid).toLocaleString()}</td>
-                        <td className="text-right font-mono text-error">LKR {Number(student.outstanding).toLocaleString()}</td>
-                        <td className="actions-cell">
-                          <div className="action-row">
-                            <button className="icon-btn" onClick={() => handleOpenModal(student)} title="Edit"><Edit2 size={16} /></button>
-                            <button className="icon-btn text-error" onClick={() => handleDelete(student.id)} title="Delete"><Trash2 size={16} /></button>
-                            <button className="icon-btn" onClick={() => handleViewProfile(student)} title="View Summary"><ChevronRight size={16} /></button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="empty-state">
-                <Users size={48} opacity={0.3} />
-                <p>No student records match your filters.</p>
-              </div>
-            )}
-
-            {totalPages > 1 && (
-              <div className="pagination">
-                <button
-                  className="btn btn-sm btn-outline"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(prev => prev - 1)}
-                >Previous</button>
-                <span className="page-info">Page {currentPage} of {totalPages}</span>
-                <button
-                  className="btn btn-sm btn-outline"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(prev => prev + 1)}
-                >Next</button>
-              </div>
-            )}
+                  ))
+                ) : (
+                  <tr><td colSpan="6" className="text-center">No students found matching your filters.</td></tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        </>
-      ) : (
-        <div className="batch-explorer-grid">
-          {batchStats.length > 0 ? (
-            batchStats.map((batch, idx) => (
-              <div
-                key={idx}
-                className="batch-card card"
-                onClick={() => {
-                  setCourseFilter(batch.course);
-                  setBatchFilter(batch.batch);
-                  setViewMode('registry');
-                }}
-              >
-                <div className="batch-card-header">
-                  <div className="batch-meta">
-                    <span className="campus-label">{batch.campus}</span>
-                    <h3 className="course-name">{batch.course}</h3>
-                    <span className="batch-number">{batch.batch}</span>
-                  </div>
-                  <div className="student-count">
-                    <Users size={16} />
-                    <span>{batch.count} Students</span>
-                  </div>
-                </div>
-                <div className="batch-card-stats">
-                  <div className="mini-stat">
-                    <span className="label">Collected</span>
-                    <span className="value">LKR {batch.paid.toLocaleString()}</span>
-                  </div>
-                  <div className="mini-stat">
-                    <span className="label">Outstanding</span>
-                    <span className="value text-error">LKR {batch.outstanding.toLocaleString()}</span>
-                  </div>
-                </div>
-                <div className="batch-card-footer">
-                  <span className="view-students-link">View Batch Students <ChevronRight size={14} /></span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="empty-state full-width">
-              <Landmark size={48} opacity={0.2} />
-              <p>No batches found. Enroll students with course and batch details to see them here.</p>
+
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button
+                className="btn btn-sm btn-outline"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => prev - 1)}
+              >Previous</button>
+              <span className="page-info">Page {currentPage} of {totalPages}</span>
+              <button
+                className="btn btn-sm btn-outline"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => prev + 1)}
+              >Next</button>
             </div>
           )}
         </div>
-      )}
+      </div>
 
-      {/* CREATE/EDIT MODAL */}
+      <div className="page-footer-actions">
+        <button className="btn btn-outline" onClick={() => navigate('/dashboard')}>
+          <ArrowLeft size={18} /> Back to Dashboard
+        </button>
+      </div>
+
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-card card">
@@ -642,290 +484,147 @@ const Students = () => {
             </form>
           </div>
         </div>
-      )}
+      )
+      }
 
-      {/* VIEW PROFILE MODAL */}
       {showViewModal && selectedStudent && (
         <div className="modal-overlay">
-          <div className="modal-card card profile-modal">
-            <div className="profile-header">
-              <div className="avatar large">{selectedStudent.full_name.charAt(0)}</div>
-              <div>
-                <h2>{selectedStudent.full_name}</h2>
-                <span className="badge">{selectedStudent.campuses?.name} Campus</span>
-              </div>
-            </div>
-
-            <div className="profile-grid">
-              <div className="profile-section">
-                <h3><Users size={16} /> Personal Information</h3>
-                <div className="info-list">
-                  <div className="info-item"><span>Email:</span> {selectedStudent.email || 'N/A'}</div>
-                  <div className="info-item"><span>Phone:</span> {selectedStudent.phone || 'N/A'}</div>
-                  <div className="info-item"><span>District:</span> {selectedStudent.district || 'N/A'}</div>
-                  <div className="info-item"><span>Age:</span> {selectedStudent.age || 'N/A'}</div>
+          <div className="modal-card card profile-modal dashboard-style">
+            <div className="profile-banner"></div>
+            <div className="profile-header-dashboard">
+              <div className="avatar-overlap">{selectedStudent.full_name.charAt(0)}</div>
+              <div className="header-info">
+                <div className="title-row">
+                  <h2>{selectedStudent.full_name}</h2>
+                  <div className="profile-badges">
+                    <span className="badge campus">{selectedStudent.campuses?.name} Campus</span>
+                    <span className="badge course">{selectedStudent.course}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="profile-section">
-                <h3><DollarSign size={16} /> Payment Summary</h3>
-                <div className="payment-stack">
-                  <div className="pay-row"><span>Total Tuition:</span> <strong>LKR {selectedStudent.total_payment?.toLocaleString()}</strong></div>
-                  <div className="pay-row text-success"><span>Total Paid:</span> <strong>LKR {selectedStudent.paid?.toLocaleString()}</strong></div>
-                  <div className="pay-row divider"></div>
-                  <div className="pay-row text-error"><span>Outstanding:</span> <strong>LKR {selectedStudent.outstanding?.toLocaleString()}</strong></div>
-                </div>
-              </div>
-
-              <div className="profile-section full-width">
-                <h3><CreditCard size={16} /> Payment History</h3>
-                <div className="payment-history-list">
-                  {payments.filter(p => p.student_id === selectedStudent.id).length > 0 ? (
-                    <table className="mini-table">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Method</th>
-                          <th className="text-right">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {payments.filter(p => p.student_id === selectedStudent.id)
-                          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                          .map(p => (
-                            <tr key={p.id}>
-                              <td>{new Date(p.created_at).toLocaleDateString()}</td>
-                              <td>{p.method}</td>
-                              <td className="text-right">LKR {Number(p.amount).toLocaleString()}</td>
-                            </tr>
-                          ))
-                        }
-                      </tbody>
-                    </table>
-                  ) : (
-                    <div className="no-payments">No payments recorded yet.</div>
-                  )}
+                <div className="header-meta">
+                  <span><Users size={14} /> {selectedStudent.batch}</span>
+                  <span><Mail size={14} /> {selectedStudent.email || 'No Email'}</span>
                 </div>
               </div>
             </div>
 
-            <div className="modal-actions">
-              <button className="btn btn-primary" onClick={() => setShowViewModal(false)}>Close Profile</button>
+            <div className="profile-dashboard-grid">
+              <div className="stats-row">
+                <div className="stat-card">
+                  <Landmark size={20} />
+                  <div className="stat-info">
+                    <label>Total Tuition</label>
+                    <span className="amount">LKR {selectedStudent.total_payment?.toLocaleString()}</span>
+                  </div>
+                </div>
+                <div className="stat-card success">
+                  <Check size={20} />
+                  <div className="stat-info">
+                    <label>Paid Amount</label>
+                    <span className="amount">LKR {selectedStudent.paid?.toLocaleString()}</span>
+                  </div>
+                </div>
+                <div className="stat-card warning">
+                  <DollarSign size={20} />
+                  <div className="stat-info">
+                    <label>Outstanding</label>
+                    <span className="amount">LKR {selectedStudent.outstanding?.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="dashboard-content">
+                <div className="content-left">
+                  <div className="profile-section-card">
+                    <h3><Users size={16} /> Contact Details</h3>
+                    <div className="profile-info-grid">
+                      <div className="info-box">
+                        <label>Phone Number</label>
+                        <p>{selectedStudent.phone || 'N/A'}</p>
+                      </div>
+                      <div className="info-box">
+                        <label>Email Address</label>
+                        <p>{selectedStudent.email || 'N/A'}</p>
+                      </div>
+                      <div className="info-box">
+                        <label>District</label>
+                        <p>{selectedStudent.district || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="content-right">
+                  <div className="profile-section-card">
+                    <h3><CreditCard size={16} /> Payment History</h3>
+                    <div className="payment-history-mini">
+                      {payments.filter(p => p.student_id === selectedStudent.id).length > 0 ? (
+                        <div className="mini-table-container">
+                          <table className="mini-table-v2">
+                            <thead>
+                              <tr>
+                                <th>Date</th>
+                                <th className="text-right">Amount</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {payments.filter(p => p.student_id === selectedStudent.id)
+                                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                                .slice(0, 5) // Show last 5
+                                .map(p => (
+                                  <tr key={p.id}>
+                                    <td>{new Date(p.created_at).toLocaleDateString()}</td>
+                                    <td className="text-right">LKR {Number(p.amount).toLocaleString()}</td>
+                                  </tr>
+                                ))
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="no-history">No transactions yet</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="dashboard-footer">
+              <button className="btn btn-primary" onClick={() => setShowViewModal(false)}>Done</button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="page-footer">
-        <button
-          className="btn btn-outline"
-          onClick={() => navigate('/dashboard')}
-        >
-          <ArrowLeft size={18} /> Back to Dashboard
-        </button>
-      </div>
 
       <style>{`
-        .page-footer {
-          margin-top: 5rem;
-          padding-top: 2rem;
-          border-top: 1px solid #e2e8f0;
-          display: flex;
-          justify-content: center;
-        }
-        .students-page { animation: fadeIn 0.4s ease-out; padding: 2rem 2rem 6rem; max-width: 1100px; margin: 0 auto; }
+        .students-page { animation: fadeIn 0.4s ease-out; padding: 2rem 2rem 6rem; max-width: 1400px; margin: 0 auto; position: relative; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .loading-spinner {
+          width: 40px;
+          height: 40px;
+          border: 4px solid #f1f5f9;
+          border-top: 4px solid #006aff;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin: 0 auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .header-actions {
           display: flex;
           justify-content: space-between;
-          align-items: flex-start;
+          align-items: center;
           margin-bottom: 3.5rem;
         }
 
-        .view-toggle-container {
+        .top-action-bar {
           display: flex;
           align-items: center;
           gap: 1.5rem;
         }
-
-        .view-toggle {
-          display: flex;
-          background: #f1f5f9;
-          padding: 0.35rem;
-          border-radius: 12px;
-          border: 1px solid #e2e8f0;
-        }
-
-        .toggle-btn {
-          border: none;
-          background: transparent;
-          padding: 0.6rem 1.25rem;
-          border-radius: 10px;
-          font-size: 0.85rem;
-          font-weight: 800;
-          color: #64748b;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .toggle-btn.active {
-          background: white;
-          color: #006dff;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        .batch-explorer-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-          gap: 2rem;
-          margin-bottom: 4rem;
-        }
-
-        .batch-card {
-          padding: 1.5rem;
-          cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          border: 1px solid #e2e8f0;
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        .batch-card:hover { 
-          transform: translateY(-5px); 
-          border-color: #006aff;
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); 
-        }
-
-        .batch-card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-        }
-
-        .campus-label {
-          font-size: 0.65rem;
-          font-weight: 800;
-          color: #94a3b8;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          display: block;
-          margin-bottom: 0.25rem;
-        }
-
-        .course-name {
-          font-size: 1.25rem;
-          font-weight: 850;
-          color: #1e293b;
-          letter-spacing: -0.02em;
-          margin-bottom: 0.25rem;
-        }
-
-        .batch-number {
-          font-size: 0.85rem;
-          font-weight: 700;
-          color: #006aff;
-          background: #eff6ff;
-          padding: 0.25rem 0.6rem;
-          border-radius: 6px;
-        }
-
-        .student-count {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.8rem;
-          font-weight: 700;
-          color: #64748b;
-          background: #f8fafc;
-          padding: 0.5rem 0.75rem;
-          border-radius: 10px;
-        }
-
-        .batch-card-stats {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-          padding: 1.25rem;
-          background: #f8fafc;
-          border-radius: 16px;
-        }
-
-        .mini-stat {
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-
-        .mini-stat .label {
-          font-size: 0.65rem;
-          font-weight: 800;
-          color: #94a3b8;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .mini-stat .value {
-          font-size: 0.95rem;
-          font-weight: 800;
-          color: #1e293b;
-        }
-
-        .batch-card-footer {
-          display: flex;
-          justify-content: flex-end;
-          border-top: 1px solid #f1f5f9;
-          padding-top: 1rem;
-        }
-
-        .view-students-link {
-          font-size: 0.85rem;
-          font-weight: 800;
-          color: #006aff;
-          display: flex;
-          align-items: center;
-          gap: 0.25rem;
-        }
-
-        .empty-state.full-width { grid-column: 1 / -1; min-height: 300px; }
-
-        .page-title { font-size: 2.25rem; font-weight: 800; color: #1e293b; letter-spacing: -0.04em; margin-bottom: 0.25rem; }
-        .page-subtitle { color: #64748b; font-size: 0.95rem; font-weight: 500; font-family: 'Plus Jakarta Sans', sans-serif; }
-        .action-btns { display: flex; gap: 1.5rem; }
-
-        .filters-bar { display: none; } /* Replaced by utility-bar */
-
-        .stats-overview {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 1.5rem;
-          margin-bottom: 2.5rem;
-        }
-
-        .stat-card {
-          background: white;
-          padding: 1.5rem;
-          border-radius: 20px;
-          border: 1px solid #e2e8f0;
-          display: flex;
-          align-items: center;
-          gap: 1.25rem;
-          transition: transform 0.3s;
-        }
-        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
-
-        .stat-icon-s {
-          width: 48px; height: 48px; border-radius: 12px;
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
-        }
-        .stat-icon-s.blue { background: #eff6ff; color: #3b82f6; }
-        .stat-icon-s.emerald { background: #ecfdf5; color: #10b981; }
-        .stat-icon-s.violet { background: #f5f3ff; color: #8b5cf6; }
-
-        .stat-info { display: flex; flex-direction: column; }
-        .stat-label { font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
-        .stat-value { font-size: 1.5rem; font-weight: 900; color: #1e293b; }
 
         .utility-bar {
           display: flex;
@@ -991,9 +690,8 @@ const Students = () => {
             letter-spacing: 0.1em;
             border-bottom: 1px solid #e2e8f0;
         }
-        .student-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.875rem; }
-        .student-table th { padding: 1.25rem 1.5rem; background: #f8fafc; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; }
-        .student-table td { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+
+        .data-table td { padding: 1.25rem 1.25rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         .text-right { text-align: right; }
         .data-table tr:last-child td { border-bottom: none; }
         .data-table tr:hover { background-color: #fcfdfe; }
@@ -1022,10 +720,25 @@ const Students = () => {
         .contact-info { display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.875rem; color: #64748b; font-weight: 500; }
         .contact-info span { display: flex; align-items: center; gap: 0.6rem; }
         
+        .enrollment-info { display: flex; flex-direction: column; gap: 0.25rem; }
+        .enrollment-info .course { font-weight: 800; color: #334155; font-size: 0.9rem; }
+        .enrollment-info .batch { font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
+        
         .font-mono { font-family: ui-monospace, monospace; font-weight: 700; }
         .text-right { text-align: right; }
         .text-success { color: #10b981; }
         .text-error { color: #ef4444; }
+
+        .status-pill {
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .status-pill.success { background: #f0fdf4; color: #16a34a; }
+        .status-pill.warning { background: #fffbeb; color: #d97706; }
+        .status-pill.error { background: #fef2f2; color: #dc2626; }
 
         .actions-cell { text-align: right; }
         .action-row { display: flex; justify-content: flex-end; gap: 0.5rem; }
@@ -1073,27 +786,202 @@ const Students = () => {
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
         }
 
-        .profile-modal { max-width: 600px; }
-        .profile-header { display: flex; align-items: center; gap: 2rem; margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 2px solid #f1f5f9; }
-        .profile-header h2 { font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 0.25rem; }
-        
-        .profile-grid { display: grid; gap: 3rem; }
-        .profile-section h3 { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 800; margin-bottom: 1.5rem; color: #006dff; text-transform: uppercase; letter-spacing: 0.05em; }
-        .info-list { display: grid; gap: 1rem; }
-        .info-item { font-size: 1rem; color: #475569; font-weight: 500; }
-        .info-item span { font-weight: 800; color: #94a3b8; width: 100px; display: inline-block; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.02em; }
-        
-        .payment-stack { background: #f8fafc; padding: 1.5rem; border-radius: 20px; border: 1px solid #e2e8f0; }
-        .pay-row { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.95rem; }
-        .pay-row:last-child { margin-bottom: 0; }
-        .pay-row.divider { border-top: 1px dashed #cbd5e1; padding-top: 0.75rem; margin-top: 0.75rem; }
+        .profile-modal.dashboard-style {
+          max-width: 1000px;
+          padding: 0;
+          overflow: hidden;
+          background: #f8fafc;
+        }
 
-        .profile-section.full-width { grid-column: 1 / -1; }
-        .payment-history-list { margin-top: 1rem; }
-        .mini-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .mini-table th { text-align: left; color: #64748b; padding: 0.5rem; border-bottom: 1px solid #e2e8f0; }
-        .mini-table td { padding: 0.75rem 0.5rem; border-bottom: 1px solid #f1f5f9; }
-        .no-payments { text-align: center; padding: 2rem; color: #94a3b8; font-style: italic; }
+        .profile-banner {
+          height: 120px;
+          background: linear-gradient(135deg, #006dff 0%, #00d2ff 100%);
+        }
+
+        .profile-header-dashboard {
+          padding: 0 3rem;
+          display: flex;
+          align-items: flex-end;
+          gap: 2.5rem;
+          margin-top: -60px;
+          margin-bottom: 2.5rem;
+        }
+
+        .avatar-overlap {
+          width: 120px;
+          height: 120px;
+          background: white;
+          border: 5px solid white;
+          border-radius: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 3rem;
+          font-weight: 900;
+          color: #006aff;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-info {
+          padding-bottom: 1rem;
+          flex: 1;
+        }
+
+        .header-info .title-row {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+          margin-bottom: 0.75rem;
+          flex-wrap: wrap;
+        }
+
+        .header-info h2 {
+          font-size: 2rem;
+          font-weight: 900;
+          color: #1e293b;
+          margin: 0;
+        }
+
+        .header-meta {
+          display: flex;
+          gap: 1.5rem;
+          color: #64748b;
+          font-size: 0.875rem;
+          font-weight: 600;
+        }
+
+        .header-meta span {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .profile-dashboard-grid {
+          padding: 0 3rem 3rem;
+        }
+
+        .stats-row {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.5rem;
+          margin-bottom: 2rem;
+        }
+
+        .stat-card {
+          background: white;
+          padding: 1.5rem;
+          border-radius: 20px;
+          display: flex;
+          align-items: center;
+          gap: 1.25rem;
+          border: 1px solid #e2e8f0;
+        }
+
+        .stat-card label {
+          display: block;
+          font-size: 0.75rem;
+          font-weight: 800;
+          color: #94a3b8;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 0.25rem;
+        }
+
+        .stat-card .amount {
+          font-size: 1.125rem;
+          font-weight: 900;
+          color: #1e293b;
+        }
+
+        .stat-card svg { color: #006aff; }
+        .stat-card.success svg { color: #10b981; }
+        .stat-card.warning svg { color: #f59e0b; }
+
+        .dashboard-content {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 2rem;
+        }
+
+        .profile-section-card {
+          background: white;
+          padding: 2rem;
+          border-radius: 24px;
+          border: 1px solid #e2e8f0;
+          height: 100%;
+        }
+
+        .profile-section-card h3 {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          font-size: 1rem;
+          font-weight: 900;
+          color: #006aff;
+          margin-bottom: 1.5rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .profile-info-grid {
+          display: grid;
+          gap: 1.25rem;
+        }
+
+        .info-box label {
+          display: block;
+          font-size: 0.7rem;
+          font-weight: 800;
+          color: #94a3b8;
+          text-transform: uppercase;
+          margin-bottom: 0.25rem;
+        }
+
+        .info-box p {
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #334155;
+          margin: 0;
+        }
+
+        .mini-table-v2 {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        .mini-table-v2 th {
+          text-align: left;
+          font-size: 0.7rem;
+          font-weight: 800;
+          color: #94a3b8;
+          text-transform: uppercase;
+          padding-bottom: 0.75rem;
+          border-bottom: 1px solid #f1f5f9;
+        }
+
+        .mini-table-v2 td {
+          padding: 0.75rem 0;
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #475569;
+          border-bottom: 1px solid #f8fafc;
+        }
+
+        .no-history {
+          text-align: center;
+          padding: 2rem;
+          color: #94a3b8;
+          font-style: italic;
+          font-size: 0.875rem;
+        }
+
+        .dashboard-footer {
+          padding: 2rem 3rem;
+          background: white;
+          border-top: 1px solid #e2e8f0;
+          display: flex;
+          justify-content: flex-end;
+        }
 
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem; }
         .form-group { margin-bottom: 1.5rem; }
@@ -1140,8 +1028,31 @@ const Students = () => {
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
+        .top-action-bar {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+        }
+
+        .utility-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1.5rem 2rem;
+          background: white;
+          border-bottom: 1px solid #e2e8f0;
+          border-top-left-radius: 24px;
+          border-top-right-radius: 24px;
+        }
+
+        .page-footer-actions {
+          display: flex;
+          justify-content: center;
+          padding: 3rem 0;
+          margin-top: 2rem;
+        }
       `}</style>
-    </div>
+    </div >
   )
 }
 
